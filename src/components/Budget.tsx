@@ -1,7 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar.tsx';
 
 const Budget = () => {
+
+    //added to allow user enter income
+    const [income, setIncome] = useState('');
+
+    //submit budget function
+    const submitBudget = () => {
+        fetch('http://localhost:5000/budget', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: parseFloat(income) })
+        })
+        .then(res => res.json())
+        .then(data => {
+          console.log('Budget response:', data);
+          alert(`Budget set to $${data.budget}`);
+        })
+        .catch(error => {
+          console.error('Error setting budget:', error);
+          alert('Failed to set budget');
+        });
+      };
+      
+
     return (
       <div className="flex h-screen">
         <div>
@@ -20,7 +43,22 @@ const Budget = () => {
                 type="text"
                 placeholder="Enter income here"
                 className="relative -translate-y-20 w-64 p-2 rounded border border-gray-300"
+
+                // added to allow user to enter income (budget)
+                value={income}
+                onChange={(e) => setIncome(e.target.value)}
                 />
+
+                {/* added to allow user to submit budget */}
+                <div className="flex justify-center mt-4">
+                <button
+                    onClick={submitBudget}
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                    Submit Budget
+                </button>
+                </div>
+
             </div>
             <div>
                 <div className="h-48 bg-gray-100 text-gray-500 py-4">
