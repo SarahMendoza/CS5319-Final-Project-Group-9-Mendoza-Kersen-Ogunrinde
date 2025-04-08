@@ -153,7 +153,7 @@ def add_expense():
 def update_expense(id):
     
     # checks if the index exists using len(expenses)
-    if 0 <= id < len(expenses):
+    # if 0 <= id < len(expenses):
         
         # get the data (which would be received in json format)
         data = request.get_json()
