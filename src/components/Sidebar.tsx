@@ -7,11 +7,15 @@ const Sidebar = () => {
   const navigate = useNavigate();
   
   const handleSpending = () => {
+<<<<<<< HEAD
     navigate('/spending')
+=======
+    navigate('/sheet');
+>>>>>>> 1044caa091bb09f0f6e143afe540e69e9d77ffc1
   }
 
   const handleGoal = () => {
-     navigate('/goal');
+    navigate('/goal');
   }
 
   const handleSheet = () => {

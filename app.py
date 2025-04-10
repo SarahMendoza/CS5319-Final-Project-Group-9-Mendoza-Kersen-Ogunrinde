@@ -9,12 +9,22 @@ from flask import request
 # jsonify is used to transform python data (like lists or dictionaries) into JSON (a format the frontend or user understands).
 from flask import jsonify
 
-# initialises the app 
+# cors is used to accept requests from the frontend
+from flask_cors import CORS
+
+# initialises the app
 app = Flask(__name__)
+
+# allow all frontend origins
+CORS(app)
 
 # initialises list where we’ll store expense items 
 # REPLACE
 expenses = []
+
+# initialises budget value
+# REPLACE
+budget = 0
 
 # kep track of ids to assign to expenses
 next_id = 1
@@ -104,21 +114,56 @@ def delete_expense_from_db(id):
 
 ##############################################################################################################
 
+# listens for the "/budget" endpoint
+@app.route('/budget', methods=['POST'])
+
+# SETTER -- set the amount of the 
+def set_budget():
+    
+    # allows access to global variable budget
+    global budget
+    
+    # get the budget value from the frontend
+    data = request.get_json()
+
+    # if the budget value is not inputted, return error message
+    if 'amount' not in data:
+        return jsonify({"error": "Missing budget amount"}), 400
+
+    # if the budget value, exists, assign the value returned to "budget" 
+    budget = data['amount']
+    
+    # return success message
+    return jsonify({"message": "Budget set", "budget": budget}), 201
+
+##############################################################################################################
+
+
 # listens for the "/expenses" endpoint
 @app.route('/expenses', methods=['GET'])
 
 # GETTER -- get data from the expenses list 
 def get_expenses():
     
-    # initialise category variable
+    # initialise category variable to be able to filter by category
     category = request.args.get('category')
+    
+    # initialise importance variable to be able to filter by importance
+    importance = request.args.get('importance')
+    
+    # results gotten from filtering would be stored here
+    results = get_all_expenses()
 
-    # if category is specified, then get all expenses in that category based on catagory variable
+    # if category is specified, then get all expenses in that category based on category variable
     if category:
-        return jsonify(get_expenses_by_category(category=category))
+        results = [e for e in results if e.get('category') == category]
+    
+    # if importance is specified, then get all expenses in that importance based on importance variable
+    if importance:
+        results = [e for e in results if e.get('importance') == importance]
     
     # returns list of expenses in JSON format
-    return jsonify(get_all_expenses())
+    return jsonify(results)
 
 ##############################################################################################################
 
@@ -135,9 +180,19 @@ def add_expense():
     data = request.get_json()
     
     # make sure the expenses format is being matched correctly
-    if not all(k in data for k in ("item", "amount", "category")):
+    if not all(k in data for k in ("item", "amount", "category", "importance")):
         return jsonify({"error": "Missing required fields"}), 400
     
+    # prevent users from spending over budget
+    if budget is not None:
+        
+        # sum up all the expenses
+        total_spent = sum(e['amount'] for e in expenses)
+        
+        # if the new expense is going to go over budget, then return error message
+        if total_spent + data['amount'] > budget:
+            return jsonify({"error": "Expense exceeds budget"}), 400
+
     # create new expense
     new_expense = insert_expense_to_db(data)
     
@@ -152,6 +207,7 @@ def add_expense():
 # PUT -- used to edit expenses in the expenses list
 def update_expense(id):
     
+    # REPLACE
     # checks if the index exists using len(expenses)
     # if 0 <= id < len(expenses):
         
@@ -185,6 +241,34 @@ def delete_expense(id):
     
     # if not, return error message
     return jsonify({"error": "Not found"}), 404
+
+##############################################################################################################
+
+# listens for the "/summary" endpoint
+@app.route('/summary', methods=['GET'])
+
+# GET -- gets a summary of the entire budget including all expenses
+def get_summary():
+    
+    # sum up all the expenses
+    total_spent = sum(e['amount'] for e in expenses)
+    
+    # subtract all expenses from the budget
+    remaining = (budget or 0) - total_spent
+
+    # breakdown by category and/or importance
+    breakdown = {}
+    
+    for e in expenses:
+        key = f"{e['category']} - {e['importance']}"
+        breakdown[key] = breakdown.get(key, 0) + e['amount']
+
+    return jsonify({
+        "budget": budget,
+        "total_spent": total_spent,
+        "remaining": remaining,
+        "breakdown": breakdown
+    })
 
 ##############################################################################################################
 
