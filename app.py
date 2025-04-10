@@ -184,7 +184,7 @@ def add_expense():
         return jsonify({"error": "Missing required fields"}), 400
     
     # prevent users from spending over budget
-    if budget is not 0:
+    if budget is not None:
         
         # sum up all the expenses
         total_spent = sum(e['amount'] for e in expenses)
