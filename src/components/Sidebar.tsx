@@ -7,7 +7,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   
   const handleSpending = () => {
-    
+    navigate('/spending')
   }
 
   const handleGoal = () => {

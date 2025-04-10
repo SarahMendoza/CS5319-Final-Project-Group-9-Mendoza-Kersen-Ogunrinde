@@ -19,9 +19,6 @@ const Home = () => {
               <p className="mt-4 text-3xl text-center text-gray-200">Here's your financial report for the month</p>
             </div>
               <div>
-                <Categories />
-              </div>
-              <div>
                 <MainBudget />
               </div>
               {/* Optional bottom content */}
