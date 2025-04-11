@@ -1,14 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar.tsx';
-import ExpenseForm from './ExpenseForm.tsx';
 
 const Budget = () => {
-<<<<<<< HEAD
-    const handleSpending = () => {
-        //submit axios request to send expenses to database
-        // TODO -----------------------
-    }
-=======
 
     //added to allow user enter income
     const [income, setIncome] = useState('');
@@ -31,7 +24,6 @@ const Budget = () => {
         });
       };
       
->>>>>>> 1044caa091bb09f0f6e143afe540e69e9d77ffc1
 
     return (
         <div className="flex h-screen">
@@ -49,14 +41,6 @@ const Budget = () => {
                 Follow these steps to create a custom monthly budget
             </p>
             </div>
-<<<<<<< HEAD
-
-            {/* Content Area */}
-            <div className="flex flex-col items-center justify-start flex-1 gap-12 py-12">
-                {/* Step 1 */}
-                <div className="text-center">
-                    <h2 className="text-3xl font-semibold text-gray-600 mb-4">1: Set your monthly income</h2>
-=======
             <div className="h-48 bg-gray-100 text-gray-500 py-8">
                 <h1 className="text-3xl text-center font-semibold">1: Set your monthly income</h1>
             </div>
@@ -93,17 +77,11 @@ const Budget = () => {
                     <h1 className="text-3xl text-center font-semibold">2: Add expenses</h1>
                 </div>
                 <div className="flex justify-center">
->>>>>>> 1044caa091bb09f0f6e143afe540e69e9d77ffc1
                     <input
                     type="text"
                     placeholder="Enter income here"
                     className="w-64 p-2 rounded border border-gray-300"
                     />
-                </div>
-
-                {/* Step 2 */}
-                <div>
-                    <ExpenseForm />
                 </div>
             </div>
         </div>

@@ -13,3 +13,9 @@ const Categories = () => {
   
   export default Categories;
   
+
+  // add onClick handler
+
+  // pass prop from Home.tsx to Categories.tsx that sets a filter state
+
+  // filter summary.breakdown in MainBudget.tsx accordingly

@@ -1,18 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar.tsx';
 
-
 //this is for the "Input Spending" sidebar tab
 const Sheet = () => {
-<<<<<<< HEAD
-    return (
-      <div className="flex h-screen">
-        <Sidebar />
-      </div>
-      
-    );
-};
-=======
   const [item, setItem] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
@@ -26,7 +16,6 @@ const Sheet = () => {
     if (cat) params.append('category', cat);
     if (imp) params.append('importance', imp);
     if (params.toString()) url += `?${params.toString()}`;
->>>>>>> 1044caa091bb09f0f6e143afe540e69e9d77ffc1
   
     fetch(url)
       .then(res => res.json())
