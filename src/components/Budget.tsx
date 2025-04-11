@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar.tsx';
 
 const Budget = () => {
 
-    //added to allow user enter income
+    // useState for income
     const [income, setIncome] = useState('');
+
+    // useState for animation
+    const [showSuccess, setShowSuccess] = useState(false);
+    const navigate = useNavigate();
 
     //submit budget function
     const submitBudget = () => {
@@ -16,7 +21,15 @@ const Budget = () => {
         .then(res => res.json())
         .then(data => {
           console.log('Budget response:', data);
-          alert(`Budget set to $${data.budget}`);
+            
+          //animate confirmation
+          setShowSuccess(true);
+
+          // after 1 seconds, redirect to "/sheet"
+          setTimeout(() => {
+            setShowSuccess(false);
+            navigate('/sheet');
+          }, 1000);
         })
         .catch(error => {
           console.error('Error setting budget:', error);
@@ -41,6 +54,8 @@ const Budget = () => {
                 Follow these steps to create a custom monthly budget
             </p>
             </div>
+
+            {/* first step is to set income */}
             <div className="h-48 bg-gray-100 text-gray-500 py-8">
                 <h1 className="text-3xl text-center font-semibold">1: Set your monthly income</h1>
             </div>
@@ -62,32 +77,23 @@ const Budget = () => {
 
             {/* added to allow user to submit budget */}
             <div className="flex justify-center mt-4">
-                <button
-                    onClick={submitBudget}
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                    Submit Budget
-                </button>
-            </div>
-
-            {/*********************************************************************************************************/}
-
-            <div>
-                <div className="h-48 bg-gray-100 text-gray-500 py-4">
-                    <h1 className="text-3xl text-center font-semibold">2: Add expenses</h1>
-                </div>
-                <div className="flex justify-center">
-                    <input
-                    type="text"
-                    placeholder="Enter income here"
-                    className="w-64 p-2 rounded border border-gray-300"
-                    />
-                </div>
-            </div>
-        </div>
+          <button
+            onClick={submitBudget}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Submit Budget
+          </button>
         </div>
 
-    );
+        {/* add confirmaation animation */}
+        {showSuccess && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg transition-all duration-500">
+            Thanks for entering your budget! Now enter your expenses...
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
   
 export default Budget;

@@ -26,16 +26,16 @@ const Sidebar = () => {
     <div className="h-screen w-64 bg-gray-800 text-white flex flex-col p-4 shadow-lg">
       <h2 className="text-2xl font-bold mb-8">Budget.ly</h2>
       <button className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left" onClick={handleHome}>
-        Home
+        Home/ Overview
       </button>
       <button className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left" onClick={handleSpending}>
-        Input Spending
+        Input Individual Expenses
       </button>
       <button className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left" onClick={handleGoal}>
-        Input Goal
+        Input Goals
       </button>
       <button className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded text-left" onClick={handleSheet}>
-        Budget Sheet
+        Input Budget Cost
       </button>
     </div>
   );
