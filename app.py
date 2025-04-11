@@ -26,6 +26,10 @@ expenses = []
 # REPLACE
 budget = 0
 
+# initialises goals list
+# REPLACE
+goals = []
+
 # kep track of ids to assign to expenses
 next_id = 1
 
@@ -114,10 +118,66 @@ def delete_expense_from_db(id):
 
 ##############################################################################################################
 
+# listens for the "/goals" endpoint
+@app.route('/goals', methods=['GET'])
+
+# GET -- retrieve goals
+def get_goals():
+    return jsonify(goals)
+
+##############################################################################################################
+
+# listens for the "/goals" endpoint
+@app.route('/goals', methods=['POST'])
+
+# ADD -- adds a goal
+def add_goal():
+    
+    # get the goal value from the frontend
+    data = request.get_json()
+    
+    # require a title of the goal, and the targeted amount
+    required = ['title', 'target']
+    
+    if not all(k in data for k in required):
+        return jsonify({"error": "Missing required fields"}), 400
+    
+    data['current'] = data.get('current', 0)
+    
+    # add to goals list
+    goals.append(data)
+    
+    # return success message
+    return jsonify({"message": "Goal added", "goal": data}), 201
+
+
+##############################################################################################################
+
+# listens for the "/goals" endpoint
+@app.route('/goals/<int:index>', methods=['PUT'])
+
+# UPDATE -- update goal 
+def update_goal(index):
+    
+    # get the goal value from the frontend
+    data = request.get_json()
+    
+    # make sure it is a valid goal
+    if 0 <= index < len(goals):
+        
+        goals[index].update(data)    
+        return jsonify({"message": "Goal updated", "goal": goals[index]})
+    
+    # return success message
+    return jsonify({"error": "Goal not found"}), 404
+
+
+##############################################################################################################
+
 # listens for the "/budget" endpoint
 @app.route('/budget', methods=['POST'])
 
-# SETTER -- set the amount of the 
+# SETTER -- set the amount of the budget
 def set_budget():
     
     # allows access to global variable budget
@@ -137,7 +197,6 @@ def set_budget():
     return jsonify({"message": "Budget set", "budget": budget}), 201
 
 ##############################################################################################################
-
 
 # listens for the "/expenses" endpoint
 @app.route('/expenses', methods=['GET'])
@@ -269,6 +328,30 @@ def get_summary():
         "remaining": remaining,
         "breakdown": breakdown
     })
+
+
+##############################################################################################################
+
+# listens for the "/reset" endpoint
+@app.route('/reset', methods=['POST'])
+
+# RESET -- reset the list of expenses
+def reset_all():
+    
+    # allows access to global variables
+    global expenses, budget, next_id
+    
+    # reset expenses
+    expenses = []
+    
+    # reset budget
+    budget = 0
+    
+    # reset next_id
+    next_id = 1
+    
+    return jsonify({"message": "Reset successful"})
+
 
 ##############################################################################################################
 
