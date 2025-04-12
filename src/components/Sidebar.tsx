@@ -6,6 +6,10 @@ const Sidebar = () => {
 
   const navigate = useNavigate();
   
+  const handleHome = () => {
+    navigate('/overview');
+  };
+
   const handleSpending = () => {
     navigate('/sheet');
   }
@@ -20,6 +24,16 @@ const Sidebar = () => {
 
   const handleOverview = () => {
     navigate('/overview');
+  };
+
+ const handleLogout = async () => {
+    await fetch('http://127.0.0.1:5000/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    localStorage.removeItem('username');
+    navigate('/');
   };
 
   const handleReset = async () => {
@@ -37,28 +51,43 @@ const Sidebar = () => {
   };  
 
   return (
-    <div className="h-screen w-64 bg-gray-800 text-white flex flex-col p-4 shadow-lg">
-      <h2 className="text-2xl font-bold mb-8">Budget.ly</h2>
-      <button className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left" onClick={handleOverview}>
-        Overview
-      </button>
-      <button className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left" onClick={handleSpending}>
-        Input Individual Expenses
-      </button>
-      <button className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left" onClick={handleGoal}>
-        Input Goals
-      </button>
-      <button className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded text-left" onClick={handleSheet}>
-        Input Budget Cost
-      </button>
+    <div className="h-screen w-64 bg-gray-800 text-white flex flex-col p-4 shadow-lg justify-between">
+      <div>
+        <h2 className="text-2xl font-bold mb-8">Budget.ly</h2>
+        <button
+          className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left"
+          onClick={handleHome}
+        >
+          Overview
+        </button>
+        <button
+          className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left"
+          onClick={handleSpending}
+        >
+          Input Spending
+        </button>
+        <button
+          className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left"
+          onClick={handleGoal}
+        >
+          Input Goal
+        </button>
+        <button
+          className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded text-left"
+          onClick={handleSheet}
+        >
+          Budget Sheet
+        </button>
+      </div>
 
-      <button
-      onClick={handleReset}
-      className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 mt-auto rounded"
-    >
-      Reset & Start Over
-    </button>
-
+      <div>
+        <button
+          onClick={handleLogout}
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded mt-8"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 };

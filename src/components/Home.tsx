@@ -13,10 +13,11 @@ const Home = () => {
 
   //redirect to start page if user doesn't enter name
   useEffect(() => {
-    if (!name) {
+    const user = localStorage.getItem('username');
+    if (!user) {
       navigate('/');
     }
-  }, [name, navigate]);
+  }, [navigate]);
 
   return (
     <div className="flex h-screen">
