@@ -442,12 +442,15 @@ def get_summary():
     # breakdown by category and/or importance
     breakdown = {}
     
-    for e in expenses:
+    user_expenses = user_data[username]['expenses']
+    user_budget = user_data[username]['budget']
+
+    for e in user_expenses:
         key = f"{e['category']} - {e['importance']}"
         breakdown[key] = breakdown.get(key, 0) + e['amount']
 
     return jsonify({
-        "budget": budget,
+        "budget": user_budget,
         "total_spent": total_spent,
         "remaining": remaining,
         "breakdown": breakdown

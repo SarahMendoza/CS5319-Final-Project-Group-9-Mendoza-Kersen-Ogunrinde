@@ -6,22 +6,26 @@ const Goal = () => {
   const [target, setTarget] = useState('');
   const [goals, setGoals] = useState([]);
 
-  // Fetch existing goals on component mount
+  // used to fetch existing goals on component mount
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/goals')
+    fetch('http://127.0.0.1:5000/goals', {
+      method: 'GET',
+      credentials: 'include'
+    })
       .then(res => res.json())
       .then(data => setGoals(Array.isArray(data) ? data : []))
       .catch(err => {
         console.error('Error fetching goals:', err);
-        setGoals([]); // fallback if something goes wrong
+        setGoals([]);
       });
   }, []);
 
-  // Handle new goal submission
+  // used to handle new goal submission
   const submitGoal = () => {
     fetch('http://127.0.0.1:5000/goals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         title,
         target: parseFloat(target),
@@ -53,7 +57,7 @@ const Goal = () => {
           <h1 className="text-5xl font-bold text-gray-800 mb-4">Your Savings Goals</h1>
           <p className="text-xl text-gray-600 mb-8">Add and track your financial goals</p>
 
-          {/* Add New Goal Form */}
+          {/* new goal] */}
           <div className="bg-white p-6 shadow rounded max-w-lg">
             <h2 className="text-2xl font-semibold mb-4">Add New Goal</h2>
             <input
@@ -79,7 +83,7 @@ const Goal = () => {
           </div>
         </div>
 
-        {/* Goals List */}
+        {/* list goals */}
         <div>
           <h2 className="text-3xl font-semibold mb-6">Current Goals</h2>
           {goals.length === 0 ? (
@@ -101,7 +105,7 @@ const Goal = () => {
                     ></div>
                   </div>
 
-                  {/* Update form */}
+                  {/* update */}
                   <input
                     type="number"
                     placeholder="Enter new saved amount"
@@ -119,6 +123,7 @@ const Goal = () => {
                       fetch(`http://127.0.0.1:5000/goals/${idx}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
                         body: JSON.stringify({ current: parseFloat(goal.newProgress) })
                       })
                         .then(res => res.json())

@@ -22,10 +22,6 @@ const Sidebar = () => {
     navigate('/budget')
   }
 
-  const handleOverview = () => {
-    navigate('/overview');
-  };
-
  const handleLogout = async () => {
     await fetch('http://127.0.0.1:5000/logout', {
       method: 'POST',
@@ -39,7 +35,8 @@ const Sidebar = () => {
   const handleReset = async () => {
     try {
       await fetch('http://127.0.0.1:5000/reset', {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'include',
       });
   
       localStorage.clear();

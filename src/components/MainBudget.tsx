@@ -16,12 +16,14 @@ const MainBudget = () => {
 
   // fetch budget summary from backend when component mounts
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/summary')
+    fetch('http://127.0.0.1:5000/summary', {
+      method: 'GET',
+      credentials: 'include'
+    })
       .then(res => res.json())
       .then(data => setSummary(data))
       .catch(err => console.error('Error fetching summary:', err));
   }, []);
-
 
   // transform breakdown object into array for the pie chart
   const data = Object.entries(summary?.breakdown || {}).map(([name, value]) => ({
