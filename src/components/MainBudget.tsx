@@ -24,10 +24,10 @@ const MainBudget = () => {
 
 
   // transform breakdown object into array for the pie chart
-  const data = Object.entries(summary.breakdown).map(([name, value]) => ({
+  const data = Object.entries(summary?.breakdown || {}).map(([name, value]) => ({
     name,
     value
-  }));
+  }));  
 
   return (
 
@@ -58,6 +58,11 @@ const MainBudget = () => {
             ))}
           </Pie>
         </PieChart>
+
+        {data.length === 0 && (
+          <p className="text-gray-500 mt-4 text-center">No budget data yet. Add a budget and some expenses to see your breakdown.</p>
+        )}
+
 
         {/* add pie chart legend */}
         <div className="mt-4 flex flex-wrap justify-center space-x-4 text-sm">

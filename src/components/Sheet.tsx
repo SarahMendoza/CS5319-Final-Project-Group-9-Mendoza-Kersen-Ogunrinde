@@ -19,7 +19,7 @@ const Sheet = () => {
   
     fetch(url)
       .then(res => res.json())
-      .then(data => setExpenses(data))
+      .then(data => setExpenses(Array.isArray(data) ? data : []))
       .catch(err => console.error('Error fetching expenses:', err));
   };
 
@@ -148,14 +148,22 @@ const Sheet = () => {
             </tr>
           </thead>
           <tbody>
-            {expenses.map((exp, index) => (
-              <tr key={index} className="border-t">
-                <td className="py-2 px-4">{exp.item}</td>
-                <td className="py-2 px-4">${exp.amount}</td>
-                <td className="py-2 px-4">{exp.category}</td>
-                <td className="py-2 px-4 capitalize">{exp.importance}</td>
+            {Array.isArray(expenses) && expenses.length > 0 ? (
+              expenses.map((exp, index) => (
+                <tr key={index} className="border-t">
+                  <td className="py-2 px-4">{exp.item}</td>
+                  <td className="py-2 px-4">${exp.amount}</td>
+                  <td className="py-2 px-4">{exp.category}</td>
+                  <td className="py-2 px-4 capitalize">{exp.importance}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="py-4 text-center text-gray-500">
+                  No expenses added yet.
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

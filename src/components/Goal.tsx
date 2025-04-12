@@ -10,8 +10,11 @@ const Goal = () => {
   useEffect(() => {
     fetch('http://127.0.0.1:5000/goals')
       .then(res => res.json())
-      .then(data => setGoals(data))
-      .catch(err => console.error('Error fetching goals:', err));
+      .then(data => setGoals(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error('Error fetching goals:', err);
+        setGoals([]); // fallback if something goes wrong
+      });
   }, []);
 
   // Handle new goal submission
