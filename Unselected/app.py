@@ -42,7 +42,12 @@ next_id = 1
 
 # user password dictionary
 # REPLACE
-user_data = {}
+user_data = {
+    "savings_goal": {
+        "goalAmount": 0,
+        "savedAmount": 0
+    }
+}
 
 ##############################################################################################################
 
@@ -126,6 +131,53 @@ def delete_expense_from_db(id):
         
     # if id is not found, return none
     return None
+
+##############################################################################################################
+
+# listens for the "/savings-goal" endpoint
+@app.route('/savings-goal', methods=['GET'])
+
+# GET -- get savings goal
+def get_savings_goal():
+    # Fetch the savings goal and progress from the in-memory data
+    return jsonify(user_data.get("savings_goal", {}))
+
+##############################################################################################################
+
+# listens for the "/savings-goal" endpoint
+@app.route('/savings-goal', methods=['POST'])
+
+# SET -- set savings goal
+def set_savings_goal():
+    data = request.get_json()
+    goal_amount = data.get("goalAmount", 0)
+    saved_amount = data.get("savedAmount", 0)
+
+    # Set the new goal and initial savings
+    user_data["savings_goal"] = {
+        "goalAmount": goal_amount,
+        "savedAmount": saved_amount
+    }
+
+    return jsonify({"message": "Savings goal set successfully", "goal": user_data["savings_goal"]}), 201
+
+##############################################################################################################
+
+# listens for the "/savings-goal" endpoint
+@app.route('/savings-goal', methods=['PUT'])
+
+# UPDATE -- update savings goal
+def update_savings_goal():
+    data = request.get_json()
+    new_saved_amount = data.get("savedAmount", 0)
+
+    # Update the saved amount towards the savings goal
+    if "savings_goal" in user_data:
+        user_data["savings_goal"]["savedAmount"] = new_saved_amount
+        return jsonify({"message": "Savings goal updated", "goal": user_data["savings_goal"]})
+
+    return jsonify({"error": "No savings goal found"}), 404
+
 
 ##############################################################################################################
 

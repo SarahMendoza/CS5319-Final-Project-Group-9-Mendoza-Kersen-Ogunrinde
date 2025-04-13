@@ -12,9 +12,9 @@ const Sidebar = () => {
     navigate('/sheet');
   }
 
-  const handleGoal = () => {
-    navigate('/goal');
-  }
+  const handleSavingsGoal = () => {
+    navigate('/savings-goal'); 
+  };
 
   const handleSheet = () => {
     navigate('/budget')
@@ -53,6 +53,12 @@ const Sidebar = () => {
           onClick={handleSpending}
         >
           Input Spending
+        </button>
+        <button
+          className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left"
+          onClick={handleSavingsGoal}
+        >
+          Savings Goal Progress
         </button>
         <button
           className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded text-left"
