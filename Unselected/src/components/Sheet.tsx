@@ -17,7 +17,10 @@ const Sheet = () => {
     if (imp) params.append('importance', imp);
     if (params.toString()) url += `?${params.toString()}`;
   
-    fetch(url)
+    fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }  // Removed credentials logic
+    })
       .then(res => res.json())
       .then(data => setExpenses(Array.isArray(data) ? data : []))
       .catch(err => console.error('Error fetching expenses:', err));
@@ -33,7 +36,6 @@ const Sheet = () => {
     fetch('http://127.0.0.1:5000/expenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
       body: JSON.stringify({
         item,
         amount: parseFloat(amount),
@@ -60,6 +62,28 @@ const Sheet = () => {
       });
   };
 
+  const deleteExpense = (expenseId: number) => {
+    fetch(`http://127.0.0.1:5000/expenses/${expenseId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          alert(`Error: ${data.error}`);
+        } else {
+          // Remove the deleted expense from the state
+          setExpenses(expenses.filter((exp) => exp.id !== expenseId));
+        }
+      })
+      .catch((err) => {
+        console.error('Error deleting expense:', err);
+        alert('Failed to delete expense');
+      });
+  };
+  
+  
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -156,6 +180,14 @@ const Sheet = () => {
                   <td className="py-2 px-4">${exp.amount}</td>
                   <td className="py-2 px-4">{exp.category}</td>
                   <td className="py-2 px-4 capitalize">{exp.importance}</td>
+                  <td className="py-2 px-4">
+                    <button
+                      onClick={() => deleteExpense(exp.id)}
+                      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))
             ) : (

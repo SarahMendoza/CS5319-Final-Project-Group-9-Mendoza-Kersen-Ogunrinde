@@ -13,12 +13,11 @@ const MainBudget = () => {
     breakdown: {}
   });
 
-
   // fetch budget summary from backend when component mounts
   useEffect(() => {
     fetch('http://127.0.0.1:5000/summary', {
       method: 'GET',
-      credentials: 'include'
+      headers: { 'Content-Type': 'application/json' } // Removed credentials logic
     })
       .then(res => res.json())
       .then(data => setSummary(data))
@@ -32,7 +31,6 @@ const MainBudget = () => {
   }));  
 
   return (
-
     // add budget summary
     <div className="w-full flex flex-col items-center">
       <div className="text-center my-6">
@@ -64,7 +62,6 @@ const MainBudget = () => {
         {data.length === 0 && (
           <p className="text-gray-500 mt-4 text-center">No budget data yet. Add a budget and some expenses to see your breakdown.</p>
         )}
-
 
         {/* add pie chart legend */}
         <div className="mt-4 flex flex-wrap justify-center space-x-4 text-sm">

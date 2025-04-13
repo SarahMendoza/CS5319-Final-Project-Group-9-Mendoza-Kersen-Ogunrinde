@@ -1,9 +1,7 @@
-// src/components/Sidebar.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
-
   const navigate = useNavigate();
   
   const handleHome = () => {
@@ -22,30 +20,23 @@ const Sidebar = () => {
     navigate('/budget')
   }
 
- const handleLogout = async () => {
-    await fetch('http://127.0.0.1:5000/logout', {
-      method: 'POST',
-      credentials: 'include',
-    });
-
-    localStorage.removeItem('username');
-    navigate('/');
-  };
-
   const handleReset = async () => {
     try {
       await fetch('http://127.0.0.1:5000/reset', {
         method: 'POST',
         credentials: 'include',
       });
-  
+
+      // Clear localStorage to remove saved name and all app data
       localStorage.clear();
+
+      // Navigate to the StartPage where the user can re-enter their name
       navigate('/');
     } catch (error) {
       console.error('Failed to reset app:', error);
       alert('Something went wrong while resetting.');
     }
-  };  
+  };
 
   return (
     <div className="h-screen w-64 bg-gray-800 text-white flex flex-col p-4 shadow-lg justify-between">
@@ -64,12 +55,6 @@ const Sidebar = () => {
           Input Spending
         </button>
         <button
-          className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded mb-4 text-left"
-          onClick={handleGoal}
-        >
-          Input Goal
-        </button>
-        <button
           className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded text-left"
           onClick={handleSheet}
         >
@@ -79,10 +64,10 @@ const Sidebar = () => {
 
       <div>
         <button
-          onClick={handleLogout}
+          onClick={handleReset}
           className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded mt-8"
         >
-          Logout
+          Reset
         </button>
       </div>
     </div>
