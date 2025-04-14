@@ -3,61 +3,91 @@ import { useNavigate } from 'react-router-dom';
 
 const StartPage = () => {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [isNameSet, setIsNameSet] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSignup, setIsSignup] = useState(false);
 
-  // Retrieve the name from localStorage when the component mounts
+  // Check if already logged in (by username in localStorage)
   useEffect(() => {
     const storedName = localStorage.getItem('username');
     if (storedName) {
-      setName(storedName); // If the name exists, set it
-      setIsNameSet(true); // Mark that the name has been set
-      navigate('/overview'); // Automatically navigate to overview if name exists
+      navigate('/overview');
     }
   }, [navigate]);
 
-  // Save the name and navigate to the overview page
-  const handleStart = () => {
-    if (name) {
-      localStorage.setItem('username', name); // Store the name in localStorage
-      setIsNameSet(true); // Mark name as set
-      navigate('/overview'); // Navigate to overview page
-    } else {
-      alert("Please enter your name.");
+  const handleSubmit = async () => {
+    if (!username || !password) {
+      setError('Username and password required');
+      return;
+    }
+
+    try {
+      const endpoint = isSignup ? '/signup' : '/login';
+      const res = await fetch(`http://127.0.0.1:5000${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // include cookies for session
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('username', username); // store in localStorage
+        navigate('/overview');
+      } else {
+        setError(data.error || 'Something went wrong');
+      }
+    } catch (err) {
+      setError('Server error. Try again later.');
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold mb-8">Welcome to Budget.ly</h1>
+      <h1 className="text-4xl font-bold mb-6">Welcome to Budget.ly</h1>
+      <p className="text-lg text-gray-600 mb-6">
+        {isSignup ? 'Create a new account' : 'Log into your account'}
+      </p>
 
-      {/* Personalize the greeting message */}
-      <div className="mb-4">
-        {isNameSet ? (
-          <h2 className="text-2xl">Hello, {name}!</h2> // Greet the user with their name if set
-        ) : (
-          <h2 className="text-2xl">What’s your name?</h2> // If name not set, ask for it
-        )}
-      </div>
+      <input
+        type="text"
+        placeholder="Username"
+        value={username}
+        className="mb-4 p-2 border rounded w-64"
+        onChange={(e) => setUsername(e.target.value)}
+      />
 
-      {/* Input to get the user’s name, only shown if the name isn't set yet */}
-      {!isNameSet && (
-        <input
-          type="text"
-          placeholder="Enter your name"
-          className="mb-4 p-2 border rounded w-64"
-          value={name}
-          onChange={(e) => setName(e.target.value)} // Update the name as user types
-        />
-      )}
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        className="mb-4 p-2 border rounded w-64"
+        onChange={(e) => setPassword(e.target.value)}
+      />
 
-      {/* Start using the app button */}
+      {error && <p className="text-red-500 mb-3">{error}</p>}
+
       <button
-        onClick={handleStart}
+        onClick={handleSubmit}
         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
       >
-        Start Using Budget.ly
+        {isSignup ? 'Sign Up' : 'Login'}
       </button>
+
+      <p className="mt-4 text-sm text-gray-600">
+        {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
+        <button
+          className="text-blue-600 underline"
+          onClick={() => {
+            setIsSignup(!isSignup);
+            setError('');
+          }}
+        >
+          {isSignup ? 'Log in' : 'Sign up'}
+        </button>
+      </p>
     </div>
   );
 };
