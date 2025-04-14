@@ -15,9 +15,6 @@ app.config['SESSION_COOKIE_SECURE'] = False    # Only True if using HTTPS
 users = {}
 user_data = {}
 
-
-
-
 # used to connect to database
 import mysql.connector
 from flask_sqlalchemy import SQLAlchemy
@@ -42,29 +39,9 @@ def whoami():
     return jsonify({"user": session.get("username", "Not logged in")})
 
 
-@app.route('/signup', methods=['POST'])
-def signup():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-
-    if not username or not password:
-        return jsonify({"error": "Username and password required"}), 400
-
-    if username in users:
-        return jsonify({"error": "Username already exists"}), 400
-
-    users[username] = generate_password_hash(password)
-    user_data[username] = {
-        "budget": 0,
-        "expenses": [],
-        "next_id": 1,
-        "savings_goal": {
-            "goalAmount": 0,
-            "savedAmount": 0
-        }
-    }
-    return jsonify({"message": "Signup successful"}), 201
+# user password dictionary
+# REPLACE
+user_data = {}
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -85,36 +62,68 @@ def logout():
     session.pop('username', None)
     return jsonify({"message": "Logged out successfully"})
 
-@app.route('/savings-goal', methods=['GET'])
-def get_savings_goal():
-    username = session.get('username')
-    if not username:
-        return jsonify({"error": "Not logged in"}), 403
-    return jsonify(user_data[username].get("savings_goal", {}))
+# function returns full list of expenses
+def get_all_expenses():
+    
+    # replace this with SQL SELECT * logic
+    pass
 
-@app.route('/savings-goal', methods=['POST'])
-def set_savings_goal():
-    username = session.get('username')
-    if not username:
-        return jsonify({"error": "Not logged in"}), 403
+    # REPLACE     
+    return expenses
 
-    data = request.get_json()
-    user_data[username]["savings_goal"] = {
-        "goalAmount": data.get("goalAmount", 0),
-        "savedAmount": data.get("savedAmount", 0)
-    }
-    return jsonify({"message": "Savings goal set", "goal": user_data[username]["savings_goal"]}), 201
 
-@app.route('/savings-goal', methods=['PUT'])
-def update_savings_goal():
-    username = session.get('username')
-    if not username:
-        return jsonify({"error": "Not logged in"}), 403
+# function returns expenses filtered by category (like “Food” or “Transport”)
+def get_expenses_by_category(category):
+    
+    # replace this with SQL SELECT WHERE category= logic
+    pass
 
-    data = request.get_json()
-    user_data[username]["savings_goal"]["savedAmount"] = data.get("savedAmount", 0)
-    return jsonify({"message": "Savings goal updated", "goal": user_data[username]["savings_goal"]})
+    # REPLACE
+    return [e for e in expenses if e.get('category') == category]
 
+
+# updates an existing expense, matched by its unique id
+def update_expense_in_db(id, data):
+    
+    # replace this with SQL UPDATE logic
+    pass
+
+    # loop through expenses to find the matching id
+    for i, expense in enumerate(expenses):
+        if expense['id'] == id:
+            
+            # update dict with the new data
+            expenses[i].update(data)
+            
+            # ensure id remains the same
+            expenses[i]['id'] = id
+            
+            # return the new updated expense
+            return expenses[i]
+        
+    # if id is not found, return none
+    return None
+
+
+# deletes an expense based on its id
+def delete_expense_from_db(id):
+    
+    # replace this with SQL DELETE logic
+    pass
+
+    # loop through expenses to find the matching id
+    for i, expense in enumerate(expenses):
+        if expense['id'] == id:
+            
+            # remove expense from the list using pop(i)
+            return expenses.pop(i)
+        
+    # if id is not found, return none
+    return None
+
+##############################################################################################################
+
+# listens for the "/budget" endpoint
 @app.route('/budget', methods=['POST'])
 def set_budget():
     username = session.get('username')
