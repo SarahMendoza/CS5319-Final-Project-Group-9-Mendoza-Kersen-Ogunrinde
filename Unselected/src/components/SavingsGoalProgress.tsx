@@ -76,6 +76,7 @@ const SavingsGoalProgress = () => {
               value={newGoalAmount}
               onChange={(e) => setNewGoalAmount(parseFloat(e.target.value))}
             />
+            <h4 className="text-lg font-semibold">Enter Amount of Saving's Goal Saved</h4>
             <input
               type="number"
               placeholder="Enter saved amount"
