@@ -1,29 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const StartPage = () => {
+const AuthPage = () => {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [isNameSet, setIsNameSet] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Retrieve the name from localStorage when the component mounts
+  // Check if user is already logged in
   useEffect(() => {
-    const storedName = localStorage.getItem('username');
-    if (storedName) {
-      setName(storedName); // If the name exists, set it
-      setIsNameSet(true); // Mark that the name has been set
-      navigate('/overview'); // Automatically navigate to overview if name exists
+    const storedUsername = localStorage.getItem('username');
+    if (storedUsername) {
+      setUsername(storedUsername);
+      setIsLoggedIn(true); 
+      navigate('/overview'); 
     }
   }, [navigate]);
 
-  // Save the name and navigate to the overview page
-  const handleStart = () => {
-    if (name) {
-      localStorage.setItem('username', name); // Store the name in localStorage
-      setIsNameSet(true); // Mark name as set
+  // Handle login button click
+  const handleLogin = () => {
+    if (username) {
+      localStorage.setItem('username', username); // Save the username in localStorage
+      setIsLoggedIn(true); // Mark as logged in
       navigate('/overview'); // Navigate to overview page
     } else {
-      alert("Please enter your name.");
+      alert("Please enter a username.");
     }
   };
 
@@ -31,29 +32,39 @@ const StartPage = () => {
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
       <h1 className="text-4xl font-bold mb-8">Welcome to Budget.ly</h1>
 
-      {/* Personalize the greeting message */}
+      {/* Greeting */}
       <div className="mb-4">
-        {isNameSet ? (
-          <h2 className="text-2xl">Hello, {name}!</h2> // Greet the user with their name if set
+        {isLoggedIn ? (
+          <h2 className="text-2xl">Hello, {username}!</h2> 
         ) : (
-          <h2 className="text-2xl">What’s your name?</h2> // If name not set, ask for it
+          <h2 className="text-2xl">Enter your username and password</h2>
         )}
       </div>
 
-      {/* Input to get the user’s name, only shown if the name isn't set yet */}
-      {!isNameSet && (
-        <input
-          type="text"
-          placeholder="Enter your name"
-          className="mb-4 p-2 border rounded w-64"
-          value={name}
-          onChange={(e) => setName(e.target.value)} // Update the name as user types
-        />
+      {/* Input fields for username and password */}
+      {!isLoggedIn && (
+        <>
+          <input
+            type="text"
+            placeholder="Enter your username"
+            className="mb-4 p-2 border rounded w-64"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+
+          <input
+            type="password"
+            placeholder="Enter your password"
+            className="mb-4 p-2 border rounded w-64"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </>
       )}
 
-      {/* Start using the app button */}
+      {/* Button to start using the app */}
       <button
-        onClick={handleStart}
+        onClick={handleLogin}
         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
       >
         Start Using Budget.ly
@@ -62,4 +73,4 @@ const StartPage = () => {
   );
 };
 
-export default StartPage;
+export default AuthPage;
