@@ -30,7 +30,6 @@ from models import db, User, Settings, Budget, Goal, Category, Expense
 db.init_app(app)  # 🔥 registers the app context with db
 
 with app.app_context():
-    db.drop_all()
     db.create_all()  
 
 # initialises list where we’ll store expense items 
