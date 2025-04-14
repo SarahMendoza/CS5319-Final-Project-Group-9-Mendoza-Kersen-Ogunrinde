@@ -40,6 +40,22 @@ goals = []
 # kep track of ids to assign to expenses
 next_id = 1
 
+# used to connect to database
+import mysql.connector
+from flask_sqlalchemy import SQLAlchemy
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:databases2024@localhost/arch-app'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+from models import db, User, Settings, Budget, Goal, Category, Expense
+# db = SQLAlchemy(app)
+db.init_app(app)  # 🔥 registers the app context with db
+
+with app.app_context():
+    db.create_all()  
+
+# initialises list where 
+
 # user password dictionary
 # REPLACE
 user_data = {
