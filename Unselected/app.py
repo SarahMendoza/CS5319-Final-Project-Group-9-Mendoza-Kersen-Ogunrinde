@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, session
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
 app = Flask(__name__)
 app.secret_key = "113-894-795"
 CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
@@ -14,9 +15,33 @@ app.config['SESSION_COOKIE_SECURE'] = False    # Only True if using HTTPS
 users = {}
 user_data = {}
 
+
+
+
+# used to connect to database
+import mysql.connector
+from flask_sqlalchemy import SQLAlchemy
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:databases2024@localhost/arch-app'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+from models import db, User, Settings, Budget, Goal, Category, Expense
+# db = SQLAlchemy(app)
+db.init_app(app)  # 🔥 registers the app context with db
+
+with app.app_context():
+    db.drop_all()
+    db.create_all()  
+
+# initialises list where we’ll store expense items 
+# REPLACE
+expenses = []
+
+
 @app.route('/whoami')
 def whoami():
     return jsonify({"user": session.get("username", "Not logged in")})
+
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -203,6 +228,58 @@ def reset_all():
         }
     }
     return jsonify({"message": "Reset successful"})
+  
 
+##############################################################################################################
+
+# User login, creation, deletion routes
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    user = User.query.filter_by(username=username).first()
+
+    if user and check_password_hash(user.password_hash, password):
+        return jsonify({"message": "Login successful", "user_id": user.user_id})
+    else:
+        return jsonify({"message": "Invalid credentials"}), 401
+    
+
+@app.route('/create-user', methods=['POST'])
+def create_user():
+    data = request.json
+    username = data.get('username')
+    #email = data.get('email')
+    password = data.get('password')
+
+    if not username or not password:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    # Check if username or email already exists
+    existing_user = User.query.filter((User.username == username)).first()
+
+    if existing_user:
+        return jsonify({'error': 'Username or email already exists'}), 409
+
+    hashed_password = generate_password_hash(password)
+
+    new_user = User(username=username, password_hash=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({'message': f'User {username} created successfully'}), 201
+
+
+##############################################################################################################
+
+
+
+
+
+
+# run file
 if __name__ == '__main__':
     app.run(debug=True)
