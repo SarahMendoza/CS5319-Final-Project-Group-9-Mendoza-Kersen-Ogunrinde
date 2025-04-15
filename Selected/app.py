@@ -512,18 +512,16 @@ def login():
     username = data.get('username')
     password = data.get('password')
 
-    user = User.query.filter_by(username=username).first()
+    if not username or not password:
+        return jsonify({"error": "Missing required fields"}), 400
 
-    if user and check_password_hash(user.password_hash, password):
-        session['username'] = username
-        return jsonify({"message": "Login successful", "user_id": user.user_id})
+    user = UserService.login_user(username, password)
+    if user:
+        return jsonify({"message": "Login successful", "user_id": user.user_id}), 200
     else:
-        return jsonify({"message": "Invalid credentials"}), 401
+        return jsonify({"error": "Invalid credentials"}), 401
     
-    # # clear all data in user_data
-    # user_data.clear()
-    
-    # return jsonify({"message": "Reset successful"})
+
 
 @app.route('/create-user', methods=['POST'])
 def create_user():
