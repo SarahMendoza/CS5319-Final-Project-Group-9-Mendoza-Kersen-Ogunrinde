@@ -52,6 +52,7 @@ from models import db, User, Settings, Budget, Goal, Category, Expense
 db.init_app(app)  # 🔥 registers the app context with db
 
 with app.app_context():
+    db.drop_all()
     db.create_all()  
 
 # initialises list where 
@@ -64,6 +65,11 @@ user_data = {
         "savedAmount": 0
     }
 }
+
+
+@app.route('/whoami')
+def whoami():
+    return jsonify({"user": session.get("username", "Not logged in")})
 
 ##############################################################################################################
 
@@ -182,6 +188,10 @@ def get_savings_goal():
 # SET -- set savings goal
 def set_savings_goal():
     data = request.get_json()
+    username = session.get('username')
+    if not username:
+        return jsonify({"error": "Not logged in"}), 403
+    
     user = User.query.filter_by(username=username).first()
     budget = Budget.query.filter_by(user_id=user.user_id).first()
 
@@ -207,6 +217,12 @@ def set_savings_goal():
 
 # UPDATE -- update savings goal
 def update_savings_goal():
+
+
+    username = session.get('username')
+    if not username:
+        return jsonify({"error": "Not logged in"}), 403
+    
     data = request.get_json()
     user = User.query.filter_by(username=username).first()
     budget = Budget.query.filter_by(user_id=user.user_id).first()
@@ -231,12 +247,12 @@ def update_savings_goal():
 
 ############### budget routes ############
 
-    # Update the saved amount towards the savings goal
-    if "savings_goal" in user_data:
-        user_data["savings_goal"]["savedAmount"] = new_saved_amount
-        return jsonify({"message": "Savings goal updated", "goal": user_data["savings_goal"]})
+    # # Update the saved amount towards the savings goal
+    # if "savings_goal" in user_data:
+    #     user_data["savings_goal"]["savedAmount"] = new_saved_amount
+    #     return jsonify({"message": "Savings goal updated", "goal": user_data["savings_goal"]})
 
-    return jsonify({"error": "No savings goal found"}), 404
+    # return jsonify({"error": "No savings goal found"}), 404
 
 
 ##############################################################################################################
@@ -246,6 +262,10 @@ def update_savings_goal():
 
 # SETTER -- set the amount of the budget
 def set_budget():
+
+    username = session.get('username')
+    if not username:
+        return jsonify({"error": "Not logged in"}), 403
     
     # get the budget value from the frontend
     data = request.get_json()
@@ -341,6 +361,10 @@ def get_all_expenses():
 
 # POST -- add expense to expense list in the form {"item": "Coffee", "amount": 5, "category": "Food and Drink"}
 def add_expense():
+
+    username = session.get('username')
+    if not username:
+        return jsonify({"error": "Not logged in"}), 403
     
     # get the data (which would be received in json format)
     data = request.get_json()
@@ -494,12 +518,34 @@ def login():
     else:
         return jsonify({"message": "Invalid credentials"}), 401
     
-    # clear all data in user_data
-    user_data.clear()
+    # # clear all data in user_data
+    # user_data.clear()
     
-    return jsonify({"message": "Reset successful"})
+    # return jsonify({"message": "Reset successful"})
 
+@app.route('/create-user', methods=['POST'])
+def create_user():
+    data = request.json
+    username = data.get('username')
+    #email = data.get('email')
+    password = data.get('password')
 
+    if not username or not password:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    # Check if username or email already exists
+    existing_user = User.query.filter((User.username == username)).first()
+
+    if existing_user:
+        return jsonify({'error': 'Username or email already exists'}), 409
+
+    hashed_password = generate_password_hash(password)
+
+    new_user = User(username=username, password_hash=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({'message': f'User {username} created successfully'}), 201
 ##############################################################################################################
 
 # run file

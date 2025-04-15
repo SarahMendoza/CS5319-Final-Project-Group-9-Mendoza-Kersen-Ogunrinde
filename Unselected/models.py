@@ -62,7 +62,7 @@ class Category(db.Model):
 
     budget_id = db.Column(db.Integer, db.ForeignKey('budget.budget_id'), primary_key=True)
     category_name = db.Column(db.String(50), primary_key=True)
-    category_amount = db.Column(db.Numeric(10, 2), nullable=False)
+    category_amount = db.Column(db.Numeric(10, 2) )
 
     budget = relationship("Budget", back_populates="categories")
     expenses = relationship("Expense", back_populates="category", cascade="all, delete-orphan")
