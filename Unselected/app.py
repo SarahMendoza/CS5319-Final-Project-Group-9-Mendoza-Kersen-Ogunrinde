@@ -43,43 +43,43 @@ def whoami():
     return jsonify({"user": session.get("username", "Not logged in")})
 
 
-@app.route('/signup', methods=['POST'])
-def signup():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+# @app.route('/signup', methods=['POST'])
+# def signup():
+#     data = request.get_json()
+#     username = data.get('username')
+#     password = data.get('password')
 
-    if not username or not password:
-        return jsonify({"error": "Username and password required"}), 400
+#     if not username or not password:
+#         return jsonify({"error": "Username and password required"}), 400
 
-    if username in users:
-        return jsonify({"error": "Username already exists"}), 400
+#     if username in users:
+#         return jsonify({"error": "Username already exists"}), 400
 
-    users[username] = generate_password_hash(password)
-    user_data[username] = {
-        "budget": 0,
-        "expenses": [],
-        "next_id": 1,
-        "savings_goal": {
-            "goalAmount": 0,
-            "savedAmount": 0
-        }
-    }
-    return jsonify({"message": "Signup successful"}), 201
+#     users[username] = generate_password_hash(password)
+#     user_data[username] = {
+#         "budget": 0,
+#         "expenses": [],
+#         "next_id": 1,
+#         "savings_goal": {
+#             "goalAmount": 0,
+#             "savedAmount": 0
+#         }
+#     }
+#     return jsonify({"message": "Signup successful"}), 201
 
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+# @app.route('/login', methods=['POST'])
+# def login():
+#     data = request.get_json()
+#     username = data.get('username')
+#     password = data.get('password')
 
-    if not username or not password:
-        return jsonify({"error": "Username and password required"}), 400
+#     if not username or not password:
+#         return jsonify({"error": "Username and password required"}), 400
 
-    if username in users and check_password_hash(users[username], password):
-        session['username'] = username
-        return jsonify({"message": "Login successful"}), 200
-    return jsonify({"error": "Invalid credentials"}), 401
+#     if username in users and check_password_hash(users[username], password):
+#         session['username'] = username
+#         return jsonify({"message": "Login successful"}), 200
+#     return jsonify({"error": "Invalid credentials"}), 401
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -116,7 +116,10 @@ def update_savings_goal():
     user_data[username]["savings_goal"]["savedAmount"] = data.get("savedAmount", 0)
     return jsonify({"message": "Savings goal updated", "goal": user_data[username]["savings_goal"]})
 
-@app.route('/budget', methods=['POST'])
+
+
+
+@app.route('/set-budget', methods=['POST'])
 def set_budget():
     username = session.get('username')
     if not username:
@@ -125,9 +128,43 @@ def set_budget():
     data = request.get_json()
     if 'amount' not in data:
         return jsonify({"error": "Missing budget amount"}), 400
+    
+    # check if budget already exists for user
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    existing_budget = Budget.query.filter_by(user_id=user.user_id).first()
+    if existing_budget:
+        #update existing budget
+        existing_budget.monthly_income = data['amount']
+        db.session.commit()
+        return jsonify({"message": "Budget updated", "budget": data['amount']}), 200
+    else:
+        # create new budget
+        new_budget = Budget(user_id=user.user_id, monthly_income=data['amount'])
+        db.session.add(new_budget)
+        db.session.commit()
+        return jsonify({"message": "Budget created", "budget": data['amount']}), 201
 
-    user_data[username]['budget'] = data['amount']
-    return jsonify({"message": "Budget set", "budget": data['amount']}), 201
+@app.route('/get-budget', methods=['GET'])
+def get_budget():
+    username = session.get('username')
+    if not username:
+        return jsonify({"error": "Not logged in"}), 403
+
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    budget = Budget.query.filter_by(user_id=user.user_id).first()
+    if not budget:
+        return jsonify({"error": "Budget not found"}), 404
+
+    return jsonify({"budget": budget.monthly_income}), 200
+
+
+
+
 
 @app.route('/expenses', methods=['GET'])
 def get_expenses():
@@ -243,6 +280,7 @@ def login():
     user = User.query.filter_by(username=username).first()
 
     if user and check_password_hash(user.password_hash, password):
+        session['username'] = username
         return jsonify({"message": "Login successful", "user_id": user.user_id})
     else:
         return jsonify({"message": "Invalid credentials"}), 401
