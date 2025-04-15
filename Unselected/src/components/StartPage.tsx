@@ -1,95 +1,76 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const StartPage = () => {
+const AuthPage = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isSignup, setIsSignup] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Check if already logged in (by username in localStorage)
+  // Check if user is already logged in
   useEffect(() => {
-    const storedName = localStorage.getItem("username");
-    if (storedName) {
+    const storedUsername = localStorage.getItem("username");
+    if (storedUsername) {
+      setUsername(storedUsername);
+      setIsLoggedIn(true);
       navigate("/overview");
     }
   }, [navigate]);
 
-  const handleSubmit = async () => {
-    if (!username || !password) {
-      setError("Username and password required");
-      return;
-    }
-
-    try {
-      const endpoint = isSignup ? "/create-user" : "/login";
-      const res = await fetch(`http://127.0.0.1:5000${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // include cookies for session
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        localStorage.setItem("username", username); // store in localStorage
-        navigate("/overview");
-      } else {
-        setError(data.error || "Something went wrong");
-      }
-    } catch (err) {
-      setError("Server error. Try again later.");
+  // Handle login button click
+  const handleLogin = () => {
+    if (username) {
+      localStorage.setItem("username", username); // Save the username in localStorage
+      setIsLoggedIn(true); // Mark as logged in
+      navigate("/overview"); // Navigate to overview page
+    } else {
+      alert("Please enter a username.");
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold mb-6">Welcome to Budget.ly</h1>
-      <p className="text-lg text-gray-600 mb-6">
-        {isSignup ? "Create a new account" : "Log into your account"}
-      </p>
+      <h1 className="text-4xl font-bold mb-8">Welcome to Budget.ly</h1>
 
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        className="mb-4 p-2 border rounded w-64"
-        onChange={(e) => setUsername(e.target.value)}
-      />
+      {/* Greeting */}
+      <div className="mb-4">
+        {isLoggedIn ? (
+          <h2 className="text-2xl">Hello, {username}!</h2>
+        ) : (
+          <h2 className="text-2xl">Enter your username and password</h2>
+        )}
+      </div>
 
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        className="mb-4 p-2 border rounded w-64"
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      {/* Input fields for username and password */}
+      {!isLoggedIn && (
+        <>
+          <input
+            type="text"
+            placeholder="Enter your username"
+            className="mb-4 p-2 border rounded w-64"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
 
-      {error && <p className="text-red-500 mb-3">{error}</p>}
+          <input
+            type="password"
+            placeholder="Enter your password"
+            className="mb-4 p-2 border rounded w-64"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </>
+      )}
 
+      {/* Button to start using the app */}
       <button
-        onClick={handleSubmit}
+        onClick={handleLogin}
         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
       >
-        {isSignup ? "Sign Up" : "Login"}
+        Start Using Budget.ly
       </button>
-
-      <p className="mt-4 text-sm text-gray-600">
-        {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-        <button
-          className="text-blue-600 underline"
-          onClick={() => {
-            setIsSignup(!isSignup);
-            setError("");
-          }}
-        >
-          {isSignup ? "Log in" : "Sign up"}
-        </button>
-      </p>
     </div>
   );
 };
 
-export default StartPage;
+export default AuthPage;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar.tsx';
 
+//this is for the "Input Spending" sidebar tab
 const Sheet = () => {
   const [item, setItem] = useState('');
   const [amount, setAmount] = useState('');
@@ -8,6 +9,7 @@ const Sheet = () => {
   const [importance, setImportance] = useState('');
   const [expenses, setExpenses] = useState([]);
 
+  // used to fetch expenses from backend
   const fetchExpenses = (cat = '', imp = '') => {
     let url = 'http://127.0.0.1:5000/expenses';
     const params = new URLSearchParams();
@@ -15,25 +17,25 @@ const Sheet = () => {
     if (imp) params.append('importance', imp);
     if (params.toString()) url += `?${params.toString()}`;
   
-    fetch('http://127.0.0.1:5000/expenses', {
+    fetch(url, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // Added to include session cookie
+      headers: { 'Content-Type': 'application/json' }  // Removed credentials logic
     })
       .then(res => res.json())
       .then(data => setExpenses(Array.isArray(data) ? data : []))
       .catch(err => console.error('Error fetching expenses:', err));
   };
 
+  // used to fetch once when component loads
   useEffect(() => {
     fetchExpenses();
   }, []);
 
+  // used to submit new expense
   const handleSubmit = () => {
     fetch('http://127.0.0.1:5000/expenses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // Added to include session cookie
       body: JSON.stringify({
         item,
         amount: parseFloat(amount),
@@ -51,7 +53,7 @@ const Sheet = () => {
           setAmount('');
           setCategory('');
           setImportance('');
-          fetchExpenses();
+          fetchExpenses(); // Refresh expense list
         }
       })
       .catch(err => {
@@ -71,6 +73,7 @@ const Sheet = () => {
         if (data.error) {
           alert(`Error: ${data.error}`);
         } else {
+          // Remove the deleted expense from the state
           setExpenses(expenses.filter((exp) => exp.id !== expenseId));
         }
       })
@@ -79,7 +82,8 @@ const Sheet = () => {
         alert('Failed to delete expense');
       });
   };
-
+  
+  
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -125,13 +129,14 @@ const Sheet = () => {
           </button>
         </div>
 
+        {/* Filter Controls */}
         <div className="flex gap-4 mb-6">
           <select
             className="p-2 border rounded"
             value={category}
             onChange={(e) => {
               setCategory(e.target.value);
-              fetchExpenses(e.target.value, importance);
+              fetchExpenses(e.target.value, importance); // re-fetch with new filter
             }}
           >
             <option value="">All Categories</option>
@@ -146,7 +151,7 @@ const Sheet = () => {
             value={importance}
             onChange={(e) => {
               setImportance(e.target.value);
-              fetchExpenses(category, e.target.value);
+              fetchExpenses(category, e.target.value); // re-fetch with new filter
             }}
           >
             <option value="">All Importance Levels</option>
@@ -156,6 +161,7 @@ const Sheet = () => {
           </select>
         </div>
 
+        {/* Kirk -- add expense table */}
         <h3 className="text-2xl font-semibold mb-4">Recent Expenses</h3>
         <table className="min-w-full bg-white shadow rounded">
           <thead>
@@ -164,7 +170,6 @@ const Sheet = () => {
               <th className="py-2 px-4">Amount</th>
               <th className="py-2 px-4">Category</th>
               <th className="py-2 px-4">Importance</th>
-              <th className="py-2 px-4">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -187,7 +192,7 @@ const Sheet = () => {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="py-4 text-center text-gray-500">
+                <td colSpan="4" className="py-4 text-center text-gray-500">
                   No expenses added yet.
                 </td>
               </tr>

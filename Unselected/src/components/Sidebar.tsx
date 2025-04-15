@@ -3,22 +3,22 @@ import { useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
   const navigate = useNavigate();
-
+  
   const handleHome = () => {
     navigate('/overview');
   };
 
   const handleSpending = () => {
     navigate('/sheet');
-  };
+  }
 
   const handleSavingsGoal = () => {
-    navigate('/savings-goal');
+    navigate('/savings-goal'); 
   };
 
   const handleSheet = () => {
-    navigate('/budget');
-  };
+    navigate('/budget')
+  }
 
   const handleReset = async () => {
     try {
@@ -27,26 +27,14 @@ const Sidebar = () => {
         credentials: 'include',
       });
 
+      // Clear localStorage to remove saved name and all app data
       localStorage.clear();
-      navigate('/budget');
+
+      // Navigate to the StartPage where the user can re-enter their name
+      navigate('/');
     } catch (error) {
       console.error('Failed to reset app:', error);
       alert('Something went wrong while resetting.');
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await fetch('http://127.0.0.1:5000/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      localStorage.clear();
-      navigate('/');
-    } catch (error) {
-      console.error('Logout failed:', error);
-      alert('Something went wrong while logging out.');
     }
   };
 
@@ -80,18 +68,12 @@ const Sidebar = () => {
         </button>
       </div>
 
-      <div className="space-y-2">
+      <div>
         <button
           onClick={handleReset}
-          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded"
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded mt-8"
         >
           Reset
-        </button>
-        <button
-          onClick={handleLogout}
-          className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded"
-        >
-          Logout
         </button>
       </div>
     </div>
