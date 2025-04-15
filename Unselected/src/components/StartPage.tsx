@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Check if user is already logged in
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username');
+    const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
       setUsername(storedUsername);
-      setIsLoggedIn(true); 
-      navigate('/overview'); 
+      setIsLoggedIn(true);
+      navigate("/overview");
     }
   }, [navigate]);
 
   // Handle login button click
   const handleLogin = () => {
     if (username) {
-      localStorage.setItem('username', username); // Save the username in localStorage
+      localStorage.setItem("username", username); // Save the username in localStorage
       setIsLoggedIn(true); // Mark as logged in
-      navigate('/overview'); // Navigate to overview page
+      navigate("/overview"); // Navigate to overview page
     } else {
       alert("Please enter a username.");
     }
@@ -35,7 +35,7 @@ const AuthPage = () => {
       {/* Greeting */}
       <div className="mb-4">
         {isLoggedIn ? (
-          <h2 className="text-2xl">Hello, {username}!</h2> 
+          <h2 className="text-2xl">Hello, {username}!</h2>
         ) : (
           <h2 className="text-2xl">Enter your username and password</h2>
         )}
