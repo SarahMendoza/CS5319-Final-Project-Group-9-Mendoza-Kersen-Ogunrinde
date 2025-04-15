@@ -74,6 +74,7 @@ class Expense(db.Model):
     expense_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     budget_id = db.Column(db.Integer, db.ForeignKey('budget.budget_id'), nullable=False)
     category_name = db.Column(db.String(50), nullable=False)
+    importance = db.Column(db.String(50), nullable=False)
     expense_label = db.Column(db.String(100), nullable=False)
     expense_amount = db.Column(db.Numeric(10,2), nullable=False)
     goal_id = db.Column(db.Integer, db.ForeignKey('goals.goal_id'))

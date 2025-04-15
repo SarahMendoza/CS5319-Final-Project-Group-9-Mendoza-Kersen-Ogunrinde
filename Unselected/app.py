@@ -30,7 +30,7 @@ from models import db, User, Settings, Budget, Goal, Category, Expense
 db.init_app(app)  # 🔥 registers the app context with db
 
 with app.app_context():
-    db.drop_all()
+    #db.drop_all()
     db.create_all()  
 
 # initialises list where we’ll store expense items 
@@ -119,7 +119,7 @@ def update_savings_goal():
 
 
 
-@app.route('/set-budget', methods=['POST'])
+@app.route('/budget', methods=['POST'])
 def set_budget():
     username = session.get('username')
     if not username:
@@ -146,7 +146,7 @@ def set_budget():
         db.session.commit()
         return jsonify({"message": "Budget created", "budget": data['amount']}), 201
 
-@app.route('/get-budget', methods=['GET'])
+@app.route('/budget', methods=['GET'])
 def get_budget():
     username = session.get('username')
     if not username:
@@ -165,23 +165,99 @@ def get_budget():
 
 
 
+# # get list of all expenses for current user
+# @app.route('/expenses', methods=['GET'])
+# def get_expenses():
+#     username = session.get('username')
+#     if not username:
+#         return jsonify({"error": "Not logged in"}), 403
+
+#     category = request.args.get('category')
+#     importance = request.args.get('importance')
+#     results = user_data[username].get('expenses', [])
+    
+
+#     if category:
+#         results = [e for e in results if e.get('category') == category]
+#     if importance:
+#         results = [e for e in results if e.get('importance') == importance]
+#     return jsonify(results)
 
 @app.route('/expenses', methods=['GET'])
-def get_expenses():
+def get_all_expenses():
     username = session.get('username')
     if not username:
         return jsonify({"error": "Not logged in"}), 403
 
     category = request.args.get('category')
     importance = request.args.get('importance')
-    results = user_data[username].get('expenses', [])
 
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    budget = Budget.query.filter_by(user_id=user.user_id).first()
+    if not budget:
+        return jsonify({"error": "No budget found"}), 400
+
+    query = Expense.query.filter_by(budget_id=budget.budget_id)
+    
     if category:
-        results = [e for e in results if e.get('category') == category]
+        query = query.filter_by(category_name=category)
     if importance:
-        results = [e for e in results if e.get('importance') == importance]
-    return jsonify(results)
+        query = query.filter_by(importance=importance)
 
+    expenses = query.all()
+
+    result = [
+        {
+            "id": e.expense_id,
+            "item": e.expense_label,
+            "amount": float(e.expense_amount),
+            "category": e.category_name,
+            "importance": e.importance
+        } for e in expenses
+    ]
+    return jsonify(result)
+
+# # get list of all expenses for current user in a given category
+# @app.route('/expenses-category', methods=['GET'])
+# def get_expenses_category():
+#     username = session.get('username')
+#     if not username:
+#         return jsonify({"error": "Not logged in"}), 403
+
+#     category = request.args.get('category')
+#     importance = request.args.get('importance')
+#     results = user_data[username].get('expenses', [])
+    
+
+#     if category:
+#         results = [e for e in results if e.get('category') == category]
+#     if importance:
+#         results = [e for e in results if e.get('importance') == importance]
+#     return jsonify(results)
+
+# # get list of all expenses for current user based on importance
+# @app.route('/expenses-importance', methods=['GET'])
+# def get_expenses_importance():
+#     username = session.get('username')
+#     if not username:
+#         return jsonify({"error": "Not logged in"}), 403
+
+#     category = request.args.get('category')
+#     importance = request.args.get('importance')
+#     results = user_data[username].get('expenses', [])
+    
+
+#     if category:
+#         results = [e for e in results if e.get('category') == category]
+#     if importance:
+#         results = [e for e in results if e.get('importance') == importance]
+#     return jsonify(results)
+
+
+# insert an expense for currently logged in user
 @app.route('/expenses', methods=['POST'])
 def add_expense():
     username = session.get('username')
@@ -189,17 +265,51 @@ def add_expense():
         return jsonify({"error": "Not logged in"}), 403
 
     data = request.get_json()
-    if not all(k in data for k in ("item", "amount", "category", "importance")):
-        return jsonify({"error": "Missing fields"}), 400
+    required_fields = ("item", "amount", "category", "importance")
+    for k in required_fields:
+        it = data[k]
+        if not it:
+            return jsonify({"error": f"Missing fields"}), 400
 
-    total_spent = sum(e['amount'] for e in user_data[username].get('expenses', []))
-    if total_spent + data['amount'] > user_data[username].get('budget', 0):
-        return jsonify({"error": "Expense exceeds budget"}), 400
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
 
-    data['id'] = user_data[username]['next_id']
-    user_data[username]['next_id'] += 1
-    user_data[username].setdefault('expenses', []).append(data)
-    return jsonify({"message": "Expense added", "expense": data}), 201
+    budget = Budget.query.filter_by(user_id=user.user_id).first()
+    if not budget:
+        return jsonify({"error": "No budget found"}), 400
+
+    # Check total expenses
+    # total_spent = sum([e.expense_amount for e in budget.expenses])
+    # if total_spent + data['amount'] > budget.monthly_income:
+    #     return jsonify({"error": "Expense exceeds budget"}), 400
+
+    # reate category if needed
+    category = Category.query.filter_by(budget_id=budget.budget_id, category_name=data['category']).first()
+    if not category:
+        category = Category(
+            budget_id=budget.budget_id,
+            category_name=data['category'],
+            #category_amount=data['amount']
+        )
+        db.session.add(category)
+
+    # add expense
+    expense = Expense(
+        budget_id=budget.budget_id,
+        category_name=category.category_name,
+        importance=data['importance'],
+        expense_label=data['item'],
+        expense_amount=data['amount']
+    )
+    db.session.add(expense)
+    db.session.commit()
+
+    return jsonify({"message": "Expense added", "expense_id": expense.expense_id}), 201
+
+
+
+
 
 @app.route('/expenses/<int:id>', methods=['PUT'])
 def update_expense(id):
@@ -225,6 +335,10 @@ def delete_expense(id):
             deleted = user_data[username]['expenses'].pop(i)
             return jsonify({"message": "Deleted", "expense": deleted})
     return jsonify({"error": "Not found"}), 404
+
+
+
+
 
 @app.route('/summary', methods=['GET'])
 def get_summary():

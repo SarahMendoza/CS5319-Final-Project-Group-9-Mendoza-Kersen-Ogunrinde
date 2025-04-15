@@ -1,46 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const StartPage = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isSignup, setIsSignup] = useState(false);
 
   // Check if already logged in (by username in localStorage)
   useEffect(() => {
-    const storedName = localStorage.getItem('username');
+    const storedName = localStorage.getItem("username");
     if (storedName) {
-      navigate('/overview');
+      navigate("/overview");
     }
   }, [navigate]);
 
   const handleSubmit = async () => {
     if (!username || !password) {
-      setError('Username and password required');
+      setError("Username and password required");
       return;
     }
 
     try {
-      const endpoint = isSignup ? '/signup' : '/login';
+      const endpoint = isSignup ? "/create-user" : "/login";
       const res = await fetch(`http://127.0.0.1:5000${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // include cookies for session
-        body: JSON.stringify({ username, password })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // include cookies for session
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem('username', username); // store in localStorage
-        navigate('/overview');
+        localStorage.setItem("username", username); // store in localStorage
+        navigate("/overview");
       } else {
-        setError(data.error || 'Something went wrong');
+        setError(data.error || "Something went wrong");
       }
     } catch (err) {
-      setError('Server error. Try again later.');
+      setError("Server error. Try again later.");
     }
   };
 
@@ -48,7 +48,7 @@ const StartPage = () => {
     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
       <h1 className="text-4xl font-bold mb-6">Welcome to Budget.ly</h1>
       <p className="text-lg text-gray-600 mb-6">
-        {isSignup ? 'Create a new account' : 'Log into your account'}
+        {isSignup ? "Create a new account" : "Log into your account"}
       </p>
 
       <input
@@ -73,19 +73,19 @@ const StartPage = () => {
         onClick={handleSubmit}
         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
       >
-        {isSignup ? 'Sign Up' : 'Login'}
+        {isSignup ? "Sign Up" : "Login"}
       </button>
 
       <p className="mt-4 text-sm text-gray-600">
-        {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
+        {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
         <button
           className="text-blue-600 underline"
           onClick={() => {
             setIsSignup(!isSignup);
-            setError('');
+            setError("");
           }}
         >
-          {isSignup ? 'Log in' : 'Sign up'}
+          {isSignup ? "Log in" : "Sign up"}
         </button>
       </p>
     </div>
