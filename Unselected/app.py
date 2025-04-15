@@ -86,12 +86,61 @@ def logout():
     session.pop('username', None)
     return jsonify({"message": "Logged out successfully"})
 
+
+
+
+############### goals routes ############
+
+# @app.route('/savings-goal', methods=['GET'])
+# def get_savings_goal():
+#     username = session.get('username')
+#     if not username:
+#         return jsonify({"error": "Not logged in"}), 403
+#     return jsonify(user_data[username].get("savings_goal", {}))
+
+# @app.route('/savings-goal', methods=['POST'])
+# def set_savings_goal():
+#     username = session.get('username')
+#     if not username:
+#         return jsonify({"error": "Not logged in"}), 403
+
+#     data = request.get_json()
+#     user_data[username]["savings_goal"] = {
+#         "goalAmount": data.get("goalAmount", 0),
+#         "savedAmount": data.get("savedAmount", 0)
+#     }
+#     return jsonify({"message": "Savings goal set", "goal": user_data[username]["savings_goal"]}), 201
+
+# @app.route('/savings-goal', methods=['PUT'])
+# def update_savings_goal():
+#     username = session.get('username')
+#     if not username:
+#         return jsonify({"error": "Not logged in"}), 403
+
+#     data = request.get_json()
+#     user_data[username]["savings_goal"]["savedAmount"] = data.get("savedAmount", 0)
+#     return jsonify({"message": "Savings goal updated", "goal": user_data[username]["savings_goal"]})
+
 @app.route('/savings-goal', methods=['GET'])
 def get_savings_goal():
     username = session.get('username')
     if not username:
         return jsonify({"error": "Not logged in"}), 403
-    return jsonify(user_data[username].get("savings_goal", {}))
+
+    user = User.query.filter_by(username=username).first()
+    budget = Budget.query.filter_by(user_id=user.user_id).first()
+    goal = Goal.query.filter_by(budget_id=budget.budget_id).first()
+
+    if not goal:
+        return jsonify({})
+
+    return jsonify({
+        "goalLabel": goal.goal_label,
+        "goalTargetDate": goal.goal_target_date.isoformat() if goal.goal_target_date else None,
+        "goalAmount": float(goal.goal_target_amount),
+        "savedAmount": float(goal.goal_current_amount)
+    })
+
 
 @app.route('/savings-goal', methods=['POST'])
 def set_savings_goal():
@@ -100,11 +149,21 @@ def set_savings_goal():
         return jsonify({"error": "Not logged in"}), 403
 
     data = request.get_json()
-    user_data[username]["savings_goal"] = {
-        "goalAmount": data.get("goalAmount", 0),
-        "savedAmount": data.get("savedAmount", 0)
-    }
-    return jsonify({"message": "Savings goal set", "goal": user_data[username]["savings_goal"]}), 201
+    user = User.query.filter_by(username=username).first()
+    budget = Budget.query.filter_by(user_id=user.user_id).first()
+
+    goal = Goal(
+        budget_id=budget.budget_id,
+        goal_label=data.get("goalLabel", "Savings Goal"),
+        goal_target_date=datetime.strptime(data["goalTargetDate"], "%Y-%m-%d").date(),
+        goal_target_amount=data.get("goalAmount", 0),
+        goal_current_amount=data.get("savedAmount", 0)
+    )
+    db.session.add(goal)
+    db.session.commit()
+
+    return jsonify({"message": "Savings goal set"})
+
 
 @app.route('/savings-goal', methods=['PUT'])
 def update_savings_goal():
@@ -113,11 +172,28 @@ def update_savings_goal():
         return jsonify({"error": "Not logged in"}), 403
 
     data = request.get_json()
-    user_data[username]["savings_goal"]["savedAmount"] = data.get("savedAmount", 0)
-    return jsonify({"message": "Savings goal updated", "goal": user_data[username]["savings_goal"]})
+    user = User.query.filter_by(username=username).first()
+    budget = Budget.query.filter_by(user_id=user.user_id).first()
+    goal = Goal.query.filter_by(budget_id=budget.budget_id).first()
+
+    if not goal:
+        return jsonify({"error": "No existing goal found"}), 404
+
+    if "savedAmount" in data:
+        goal.goal_current_amount = data["savedAmount"]
+    if "goalAmount" in data:
+        goal.goal_target_amount = data["goalAmount"]
+    if "goalLabel" in data:
+        goal.goal_label = data["goalLabel"]
+    if "goalTargetDate" in data:
+        goal.goal_target_date = datetime.strptime(data["goalTargetDate"], "%Y-%m-%d").date()
+
+    db.session.commit()
+    return jsonify({"message": "Savings goal updated"})
 
 
 
+############### budget routes ############
 
 @app.route('/budget', methods=['POST'])
 def set_budget():
@@ -165,23 +241,8 @@ def get_budget():
 
 
 
-# # get list of all expenses for current user
-# @app.route('/expenses', methods=['GET'])
-# def get_expenses():
-#     username = session.get('username')
-#     if not username:
-#         return jsonify({"error": "Not logged in"}), 403
 
-#     category = request.args.get('category')
-#     importance = request.args.get('importance')
-#     results = user_data[username].get('expenses', [])
-    
-
-#     if category:
-#         results = [e for e in results if e.get('category') == category]
-#     if importance:
-#         results = [e for e in results if e.get('importance') == importance]
-#     return jsonify(results)
+############### expenses routes ############
 
 @app.route('/expenses', methods=['GET'])
 def get_all_expenses():
@@ -219,42 +280,6 @@ def get_all_expenses():
         } for e in expenses
     ]
     return jsonify(result)
-
-# # get list of all expenses for current user in a given category
-# @app.route('/expenses-category', methods=['GET'])
-# def get_expenses_category():
-#     username = session.get('username')
-#     if not username:
-#         return jsonify({"error": "Not logged in"}), 403
-
-#     category = request.args.get('category')
-#     importance = request.args.get('importance')
-#     results = user_data[username].get('expenses', [])
-    
-
-#     if category:
-#         results = [e for e in results if e.get('category') == category]
-#     if importance:
-#         results = [e for e in results if e.get('importance') == importance]
-#     return jsonify(results)
-
-# # get list of all expenses for current user based on importance
-# @app.route('/expenses-importance', methods=['GET'])
-# def get_expenses_importance():
-#     username = session.get('username')
-#     if not username:
-#         return jsonify({"error": "Not logged in"}), 403
-
-#     category = request.args.get('category')
-#     importance = request.args.get('importance')
-#     results = user_data[username].get('expenses', [])
-    
-
-#     if category:
-#         results = [e for e in results if e.get('category') == category]
-#     if importance:
-#         results = [e for e in results if e.get('importance') == importance]
-#     return jsonify(results)
 
 
 # insert an expense for currently logged in user
@@ -310,7 +335,7 @@ def add_expense():
 
 
 
-
+# update or delete expenses
 @app.route('/expenses/<int:id>', methods=['PUT'])
 def update_expense(id):
     username = session.get('username')
@@ -338,30 +363,31 @@ def delete_expense(id):
 
 
 
-
-
 @app.route('/summary', methods=['GET'])
 def get_summary():
     username = session.get('username')
     if not username:
         return jsonify({"error": "Not logged in"}), 403
 
-    expenses = user_data[username].get('expenses', [])
-    budget = user_data[username].get('budget', 0)
-    total_spent = sum(e['amount'] for e in expenses)
-    remaining = budget - total_spent
+    user = User.query.filter_by(username=username).first()
+    budget = Budget.query.filter_by(user_id=user.user_id).first()
+    expenses = Expense.query.filter_by(budget_id=budget.budget_id).all()
+
+    total_spent = sum(float(e.expense_amount) for e in expenses)
+    remaining = float(budget.budget_amount) - total_spent
 
     breakdown = {}
     for e in expenses:
-        key = f"{e['category']} - {e['importance']}"
-        breakdown[key] = breakdown.get(key, 0) + e['amount']
+        key = f"{e.category_name} - {e.importance}"
+        breakdown[key] = breakdown.get(key, 0) + float(e.expense_amount)
 
     return jsonify({
-        "budget": budget,
+        "budget": float(budget.budget_amount),
         "total_spent": total_spent,
         "remaining": remaining,
         "breakdown": breakdown
     })
+
 
 @app.route('/reset', methods=['POST'])
 def reset_all():
