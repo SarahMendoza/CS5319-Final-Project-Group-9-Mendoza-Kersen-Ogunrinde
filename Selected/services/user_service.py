@@ -40,12 +40,10 @@ class UserService:
 ###### support user budget operations ######
     @staticmethod
     def get_user_budget(user_id):
-        """Retrieve the budget for a specific user."""
         return BudgetRepository.get_budget_by_user_id(user_id)
 
     @staticmethod
     def set_user_budget(user_id, monthly_income):
-        """Set a new budget for a user."""
         existing_budget = BudgetRepository.get_budget_by_user_id(user_id)
         if existing_budget:
             raise ValueError("Budget already exists for this user")
@@ -53,8 +51,15 @@ class UserService:
 
     @staticmethod
     def update_user_budget(user_id, monthly_income):
-        """Update the budget for a user."""
         budget = BudgetRepository.get_budget_by_user_id(user_id)
         if not budget:
             raise ValueError("No budget found for this user")
         return BudgetRepository.update_budget(user_id, monthly_income)
+    
+    @staticmethod
+    def set_or_update_user_budget(user_id, monthly_income):
+        existing_budget = BudgetRepository.get_budget_by_user_id(user_id)
+        if existing_budget:
+            return UserService.update_user_budget(user_id, monthly_income)
+        else:
+            return UserService.set_user_budget(user_id, monthly_income)

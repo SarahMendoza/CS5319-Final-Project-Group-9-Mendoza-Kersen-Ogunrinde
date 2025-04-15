@@ -264,34 +264,23 @@ def update_savings_goal():
 
 # SETTER -- set the amount of the budget
 def set_budget():
-
     username = session.get('username')
     if not username:
         return jsonify({"error": "Not logged in"}), 403
-    
-    # get the budget value from the frontend
-    data = request.get_json()
 
-    # if the budget value is not inputted, return error message
+    data = request.get_json()
     if 'amount' not in data:
         return jsonify({"error": "Missing budget amount"}), 400
-    
-    # check if budget already exists for user
-    user = User.query.filter_by(username=username).first()
+
+    user = UserService.get_current_user()
     if not user:
         return jsonify({"error": "User not found"}), 404
-    existing_budget = Budget.query.filter_by(user_id=user.user_id).first()
-    if existing_budget:
-        #update existing budget
-        existing_budget.monthly_income = data['amount']
-        db.session.commit()
-        return jsonify({"message": "Budget updated", "budget": data['amount']}), 200
-    else:
-        # create new budget
-        new_budget = Budget(user_id=user.user_id, monthly_income=data['amount'])
-        db.session.add(new_budget)
-        db.session.commit()
-        return jsonify({"message": "Budget created", "budget": data['amount']}), 201
+
+    try:
+        budget = UserService.set_or_update_user_budget(user.user_id, data['amount'])
+        return jsonify({"message": "Budget set successfully", "budget": budget.monthly_income}), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/budget', methods=['GET'])
 def get_budget():
@@ -299,11 +288,11 @@ def get_budget():
     if not username:
         return jsonify({"error": "Not logged in"}), 403
 
-    user = User.query.filter_by(username=username).first()
+    user = UserService.get_current_user()
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    budget = Budget.query.filter_by(user_id=user.user_id).first()
+    budget = UserService.get_user_budget(user.user_id)
     if not budget:
         return jsonify({"error": "Budget not found"}), 404
 
