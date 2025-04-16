@@ -48,7 +48,6 @@ class Goal(db.Model):
     goal_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     budget_id = db.Column(db.Integer, db.ForeignKey('budget.budget_id'), nullable=False)
     goal_label = db.Column(db.String(100))
-    goal_target_date = db.Column(db.Date)
     goal_target_amount = db.Column(db.Numeric(10, 2), nullable=False)
     goal_current_amount = db.Column(db.Numeric(10, 2), nullable=False)
 
