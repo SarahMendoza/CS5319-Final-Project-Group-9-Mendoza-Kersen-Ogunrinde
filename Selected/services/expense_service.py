@@ -1,13 +1,13 @@
 
-from repositories import expense_repository as ExpenseRepository
-from repositories import budget_repository as BudgetRepository
-from repositories import user_repository as UserRepository
-from repositories import category_repository as CategoryRepository
+from repositories.expense_repository import ExpenseRepository
+from repositories.budget_repository import BudgetRepository
+from repositories.user_repository import UserRepository
+from repositories.category_repository import CategoryRepository
 
 class ExpenseService:
     @staticmethod
     def fetch_expenses_for_user(username, category=None, importance=None):
-        user = UserRepository.get_user_by_username(username)
+        user = UserRepository.find_user_by_username(username)
         if not user:
             return None, "User not found"
         

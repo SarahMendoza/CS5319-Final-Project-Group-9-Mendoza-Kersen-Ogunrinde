@@ -17,7 +17,7 @@ class UserService:
     def login_user(username, password):
         user = UserRepository.find_user_by_username(username)
         if not user:
-            raise ValueError("Invalid username or password")
+            return None
         if user and check_password_hash(user.password_hash, password):
             session['username'] = user.username
             return user
