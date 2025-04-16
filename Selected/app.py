@@ -104,88 +104,79 @@ def insert_expense_to_db(data):
 ##############################################################################################################
 
 # listens for the "/savings-goal" endpoint
-@app.route('/savings-goal', methods=['GET'])
-
 # GET -- get savings goal
+@app.route('/savings-goal', methods=['GET'])
 def get_savings_goal():
     username = session.get('username')
     if not username:
         return jsonify({"error": "Not logged in"}), 403
 
-    user = User.query.filter_by(username=username).first()
-    budget = Budget.query.filter_by(user_id=user.user_id).first()
-    goal = Goal.query.filter_by(budget_id=budget.budget_id).first()
+    user = UserService.get_current_user()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
 
-    if not goal:
+    try:
+        goal = GoalService.get_goal(user.user_id)
+        return jsonify({
+            "goalLabel": goal.goal_label,
+            "goalAmount": float(goal.goal_target_amount),
+            "savedAmount": float(goal.goal_current_amount)
+        })
+    except ValueError:
         return jsonify({})
-
-    return jsonify({
-        "goalLabel": goal.goal_label,
-        "goalTargetDate": goal.goal_target_date.isoformat() if goal.goal_target_date else None,
-        "goalAmount": float(goal.goal_target_amount),
-        "savedAmount": float(goal.goal_current_amount)
-    })
 
 
 # listens for the "/savings-goal" endpoint
-@app.route('/savings-goal', methods=['POST'])
-
 # SET -- set savings goal
+@app.route('/savings-goal', methods=['POST'])
 def set_savings_goal():
     data = request.get_json()
     username = session.get('username')
     if not username:
         return jsonify({"error": "Not logged in"}), 403
-    
-    user = User.query.filter_by(username=username).first()
-    budget = Budget.query.filter_by(user_id=user.user_id).first()
 
-    goal = Goal(
-        budget_id=budget.budget_id,
-        goal_label=data.get("goalLabel", "Savings Goal"),
-        goal_target_date=datetime.strptime(data["goalTargetDate"], "%Y-%m-%d").date(),
-        goal_target_amount=data.get("goalAmount", 0),
-        goal_current_amount=data.get("savedAmount", 0)
-    )
-    db.session.add(goal)
-    db.session.commit()
+    user = UserService.get_current_user()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
 
-    return jsonify({"message": "Savings goal set"})
+    try:
+        GoalService.create_goal(
+            user_id=user.user_id,
+            goal_label=data.get("goalLabel", "Savings Goal"),
+            goal_target_amount=data.get("goalAmount", 0),
+            goal_current_amount=data.get("savedAmount", 0)
+        )
+        return jsonify({"message": "Savings goal set"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
-
-    return jsonify({"message": "Savings goal set successfully", "goal": user_data["savings_goal"]}), 201
 
 
 # listens for the "/savings-goal" endpoint
-@app.route('/savings-goal', methods=['PUT'])
-
 # UPDATE -- update savings goal
+@app.route('/savings-goal', methods=['PUT'])
 def update_savings_goal():
-
-
     username = session.get('username')
     if not username:
         return jsonify({"error": "Not logged in"}), 403
-    
+
     data = request.get_json()
-    user = User.query.filter_by(username=username).first()
-    budget = Budget.query.filter_by(user_id=user.user_id).first()
-    goal = Goal.query.filter_by(budget_id=budget.budget_id).first()
+    user = UserService.get_current_user()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
 
-    if not goal:
-        return jsonify({"error": "No existing goal found"}), 404
-
-    if "savedAmount" in data:
-        goal.goal_current_amount = data["savedAmount"]
-    if "goalAmount" in data:
-        goal.goal_target_amount = data["goalAmount"]
-    if "goalLabel" in data:
-        goal.goal_label = data["goalLabel"]
-    if "goalTargetDate" in data:
-        goal.goal_target_date = datetime.strptime(data["goalTargetDate"], "%Y-%m-%d").date()
-
-    db.session.commit()
-    return jsonify({"message": "Savings goal updated"})
+    try:
+        GoalService.update_goal(
+            user_id=user.user_id,
+            goal_label=data.get("goalLabel"),
+            goal_target_amount=data.get("goalAmount"),
+            goal_current_amount=data.get("savedAmount")
+        )
+        return jsonify({"message": "Savings goal updated"})
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 
 
