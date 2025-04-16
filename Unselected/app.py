@@ -44,7 +44,7 @@ next_id = 1
 import mysql.connector
 from flask_sqlalchemy import SQLAlchemy
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:databases2024@localhost/arch-app'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:mysql1@localhost/arch_app'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 from models import db, User, Settings, Budget, Goal, Category, Expense
@@ -52,7 +52,7 @@ from models import db, User, Settings, Budget, Goal, Category, Expense
 db.init_app(app)  # 🔥 registers the app context with db
 
 with app.app_context():
-    db.drop_all()
+    # db.drop_all()
     db.create_all()  
 
 # initialises list where 

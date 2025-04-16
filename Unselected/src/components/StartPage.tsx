@@ -1,30 +1,36 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  // Check if user is already logged in
-  useEffect(() => {
-    const storedUsername = localStorage.getItem("username");
-    if (storedUsername) {
-      setUsername(storedUsername);
-      setIsLoggedIn(true);
-      navigate("/overview");
-    }
-  }, [navigate]);
 
   // Handle login button click
-  const handleLogin = () => {
-    if (username) {
-      localStorage.setItem("username", username); // Save the username in localStorage
-      setIsLoggedIn(true); // Mark as logged in
-      navigate("/overview"); // Navigate to overview page
+  const handleLogin = async () => {
+    if (username && password) {
+      try {
+        // Send POST request to your backend login endpoint
+        const response = await axios.post("http://localhost:5000/api/login", {
+          username,
+          password,
+        });
+
+        // Assuming your backend returns { success: true, token: "...", username: "..." }
+        if (response.data.message) {
+          // Optionally save token in localStorage or context
+          localStorage.setItem("token", response.data.token);
+          navigate("/overview");
+        } else {
+          alert("Invalid username or password.");
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("Failed to login. Please try again.");
+      }
     } else {
-      alert("Please enter a username.");
+      alert("Please enter both username and password.");
     }
   };
 
@@ -34,33 +40,30 @@ const AuthPage = () => {
 
       {/* Greeting */}
       <div className="mb-4">
-        {isLoggedIn ? (
           <h2 className="text-2xl">Hello, {username}!</h2>
-        ) : (
+         : (
           <h2 className="text-2xl">Enter your username and password</h2>
-        )}
+        )
       </div>
 
-      {/* Input fields for username and password */}
-      {!isLoggedIn && (
-        <>
-          <input
-            type="text"
-            placeholder="Enter your username"
-            className="mb-4 p-2 border rounded w-64"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
+    {/* Input fields for username and password */}
+      <>
+        <input
+          type="text"
+          placeholder="Enter your username"
+          className="mb-4 p-2 border rounded w-64"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
 
-          <input
-            type="password"
-            placeholder="Enter your password"
-            className="mb-4 p-2 border rounded w-64"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </>
-      )}
+        <input
+          type="password"
+          placeholder="Enter your password"
+          className="mb-4 p-2 border rounded w-64"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </>
 
       {/* Button to start using the app */}
       <button
