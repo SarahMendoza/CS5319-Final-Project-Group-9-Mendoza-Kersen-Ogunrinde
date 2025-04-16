@@ -1,36 +1,100 @@
 
-from repositories import expense_repository as repo
+from repositories import expense_repository as ExpenseRepository
+from repositories import budget_repository as BudgetRepository
+from repositories import user_repository as UserRepository
+from repositories import category_repository as CategoryRepository
 
-def fetch_expenses_for_user(username, category=None, importance=None):
-    user = repo.get_user_by_username(username)
-    if not user:
-        return None, "User not found"
+class ExpenseService:
+    @staticmethod
+    def fetch_expenses_for_user(username, category=None, importance=None):
+        user = UserRepository.get_user_by_username(username)
+        if not user:
+            return None, "User not found"
+        
+        budget = BudgetRepository.get_budget_by_user_id(user.user_id)
+        if not budget:
+            return None, "No budget found"
+
+        expenses = ExpenseRepository.get_expenses(budget.budget_id, category, importance)
+        return expenses, None
+
+    ######## adds an expense, if the category doesn't exist, it inserts the category first ############################
+    @staticmethod
+    def add_expense_for_user(username, data):
+        user = UserRepository.find_user_by_username(username)
+        if not user:
+            return None, "User not found"
+        
+        budget = BudgetRepository.get_budget_by_user_id(user.user_id)
+        if not budget:
+            return None, "No budget found"
+        
+        # if the category doesn't exist, add it to the database
+        category = CategoryRepository.get_category(budget.budget_id, data['category'])
+        if not category:
+            category = CategoryRepository.create_category(budget.budget_id, data['category'])
+
+        # add the expense
+        expense = ExpenseRepository.create_expense(
+            budget.budget_id,
+            category.category_name,
+            data['importance'],
+            data['item'],
+            data['amount']
+        )
+        return expense, None
     
-    budget = repo.get_budget_by_user_id(user.user_id)
-    if not budget:
-        return None, "No budget found"
+    @staticmethod  
+    def update_expense_for_user(username, expense_id, data):
+        user = UserRepository.find_user_by_username(username)
+        if not user:
+            return None, "User not found"
+        
+        budget = BudgetRepository.get_budget_by_user_id(user.user_id)
+        if not budget:
+            return None, "No budget found"
 
-    expenses = repo.get_expenses(budget.budget_id, category, importance)
-    return expenses, None
-
-def add_expense_for_user(username, data):
-    user = repo.get_user_by_username(username)
-    if not user:
-        return None, "User not found"
+        # update expense
+        expense = ExpenseRepository.update_expense(
+            budget.budget_id,
+            expense_id,
+            data['importance'],
+            data['item'],
+            data['amount']
+        )
+        return expense, None
     
-    budget = repo.get_budget_by_user_id(user.user_id)
-    if not budget:
-        return None, "No budget found"
-    
-    category = repo.get_category(budget.budget_id, data['category'])
-    if not category:
-        category = repo.create_category(budget.budget_id, data['category'])
+    @staticmethod
+    def delete_expense_for_user(username, expense_id):
+        user = UserRepository.find_user_by_username(username)
+        if not user:
+            return None, "User not found"
+        
+        budget = BudgetRepository.get_budget_by_user_id(user.user_id)
+        if not budget:
+            return None, "No budget found"
 
-    expense = repo.create_expense(
-        budget.budget_id,
-        category.category_name,
-        data['importance'],
-        data['item'],
-        data['amount']
-    )
-    return expense, None
+        # delete expense
+        ExpenseRepository.delete_expense(budget.budget_id, expense_id)
+        return True, None
+
+
+    ######## adds a category ################################
+    @staticmethod
+    def add_category_for_user(username, category_name):
+        user = UserRepository.find_user_by_username(username)
+        if not user:
+            return None, "User not found"
+        
+        budget = BudgetRepository.get_budget_by_user_id(user.user_id)
+        if not budget:
+            return None, "No budget found"
+
+        # check if category already exists
+        existing_category = CategoryRepository.get_category(budget.budget_id, category_name)
+        if existing_category:
+            return None, "Category already exists"
+
+        # create new category
+        category = CategoryRepository.create_category(budget.budget_id, category_name)
+        return category, None

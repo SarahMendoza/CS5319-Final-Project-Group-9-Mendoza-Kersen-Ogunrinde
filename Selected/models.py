@@ -10,7 +10,6 @@ class User(db.Model):
 
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), nullable=False, unique = True, index = True)
-    # email = db.Column(db.String(100), nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
 
     settings = relationship("Settings", uselist=False, back_populates="user", cascade="all, delete-orphan")
