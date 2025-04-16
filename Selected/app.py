@@ -21,7 +21,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from services.user_service import UserService
 from services.expense_service import ExpenseService
 from services.goal_service import GoalService
-#from services.summary_service import SummaryService
+from services.summary_service import SummaryService
 
 # initialises the app
 app = Flask(__name__)
@@ -333,29 +333,17 @@ def delete_expense(id):
 
 # GET -- gets a summary of the entire budget including all expenses
 def get_summary():
-    
-    # sum up all the expenses
-    total_spent = sum(e['amount'] for e in user_data.get('expenses', []))
-    
-    # subtract all expenses from the budget
-    remaining = user_data.get('budget', 0) - total_spent
+    username = session.get('username')
+    if not username:
+        return jsonify({"error": "Not logged in"}), 403
 
-    # breakdown by category and/or importance
-    breakdown = {}
-    
-    user_expenses = user_data.get('expenses', [])
-    user_budget = user_data.get('budget', 0)
+    summary, error = SummaryService.get_summary(username)
+    if error:
+        return jsonify({"error": error}), 404
 
-    for e in user_expenses:
-        key = f"{e['category']} - {e['importance']}"
-        breakdown[key] = breakdown.get(key, 0) + e['amount']
+    return jsonify(summary), 200
 
-    response = jsonify({
-        "budget": user_budget,
-        "total_spent": total_spent,
-        "remaining": remaining,
-        "breakdown": breakdown
-    })
+
 
 @app.route('/reset', methods=['POST'])
 

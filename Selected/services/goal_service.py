@@ -4,7 +4,7 @@ from datetime import datetime
 
 class GoalService:
     @staticmethod
-    def create_goal(user_id, goal_label, goal_target_date, goal_target_amount, goal_current_amount):
+    def create_goal(user_id, goal_label, goal_target_amount, goal_current_amount):
         budget = BudgetRepository.get_budget_by_user_id(user_id)
         if not budget:
             raise ValueError("No budget found for this user")
@@ -12,7 +12,6 @@ class GoalService:
         return GoalRepository.create_goal(
             budget_id=budget.budget_id,
             goal_label=goal_label,
-            goal_target_date=goal_target_date,
             goal_target_amount=goal_target_amount,
             goal_current_amount=goal_current_amount
         )
@@ -30,7 +29,7 @@ class GoalService:
         return goal
 
     @staticmethod
-    def update_goal(user_id, goal_label=None, goal_target_date=None, goal_target_amount=None, goal_current_amount=None):
+    def update_goal(user_id, goal_label=None, goal_target_amount=None, goal_current_amount=None):
         budget = BudgetRepository.get_budget_by_user_id(user_id)
         if not budget:
             raise ValueError("No budget found for this user")
@@ -42,7 +41,6 @@ class GoalService:
         return GoalRepository.update_goal(
             goal_id=goal.goal_id,
             goal_label=goal_label,
-            goal_target_date=goal_target_date,
             goal_target_amount=goal_target_amount,
             goal_current_amount=goal_current_amount
         )
