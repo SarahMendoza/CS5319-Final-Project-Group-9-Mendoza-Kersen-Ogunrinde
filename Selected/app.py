@@ -380,9 +380,9 @@ def login():
 
     user = UserService.login_user(username, password)
     if user:
-        return jsonify({"message": "Login successful", "user_id": user.user_id}), 200
+        return jsonify({"message": True, "user_id": user.user_id}), 200
     else:
-        return jsonify({"error": "Invalid credentials"}), 401
+        return jsonify({"message": False, "error": "Invalid credentials"}), 401
     
 
 
