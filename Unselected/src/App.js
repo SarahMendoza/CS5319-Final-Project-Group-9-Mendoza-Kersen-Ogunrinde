@@ -6,6 +6,7 @@ import Budget from './components/Budget.tsx'
 import StartPage from './components/StartPage.tsx';
 import SavingsGoalProgress from './components/SavingsGoalProgress.tsx';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import SignupPage from './components/SignupPage.tsx';
 
 //test pushing to main
 function App() {
@@ -15,6 +16,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<StartPage />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route path="/overview" element={<Home />} />
         <Route path="/sheet" element={<Sheet />} />
         <Route path="/savings-goal" element={<SavingsGoalProgress />} />

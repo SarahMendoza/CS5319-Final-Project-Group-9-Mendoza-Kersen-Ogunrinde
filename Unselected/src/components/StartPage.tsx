@@ -72,6 +72,13 @@ const AuthPage = () => {
       >
         Start Using Budget.ly
       </button>
+      {/* Signup button */}
+      <button
+        onClick={() => navigate("/signup")}
+        className="text-blue-600 underline mt-2"
+      >
+        Don't have an account? Sign Up
+      </button>
     </div>
   );
 };
