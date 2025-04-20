@@ -62,12 +62,12 @@ personal-finance-app/
 ## Main differences in code between implementations
 
 Unselected:
-- **No Database**
+- **Direct Database connection**
 - **Backend Server code all in one file**
 - **Calculations and storage done all together**
 
 Selected:
-- **MySQL database with schema**
+- **Database connection isolated into own repositories directory**
 - **Different layers, as represented through services and repositories classes**
 - **Calculations done in service layer while storage is in DB** 
 
