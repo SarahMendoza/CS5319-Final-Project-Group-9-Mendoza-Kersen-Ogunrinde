@@ -189,15 +189,17 @@ def update_savings_goal():
 
 # SETTER -- set the amount of the budget
 def set_budget():
-    username = session.get('username')
-    if not username:
-        return jsonify({"error": "Not logged in"}), 403
 
     data = request.get_json()
+
+    username = data.get('username')
+    if not username:
+        return jsonify({"error": "User not specified"}), 403
+    
     if 'amount' not in data:
         return jsonify({"error": "Missing budget amount"}), 400
 
-    user = UserService.get_current_user()
+    user = UserService.get_current_user(username)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -211,11 +213,13 @@ def set_budget():
 
 @app.route('/budget', methods=['GET'])
 def get_budget():
-    username = session.get('username')
-    if not username:
-        return jsonify({"error": "Not logged in"}), 403
+    data = request.get_json()
 
-    user = UserService.get_current_user()
+    username = data.get('username')
+    if not username:
+        return jsonify({"error": "User not specified"}), 403
+
+    user = UserService.get_current_user(username)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -236,9 +240,11 @@ def get_budget():
 # listens for the "/expenses" endpoint
 @app.route('/expenses', methods=['GET'])
 def get_all_expenses():
-    username = session.get('username')
+    data = request.get_json()
+
+    username = data.get('username')
     if not username:
-        return jsonify({"error": "Not logged in"}), 403
+        return jsonify({"error": "User not specified"}), 403
 
     category = request.args.get('category')
     importance = request.args.get('importance')
@@ -264,11 +270,12 @@ def get_all_expenses():
 
 @app.route('/expenses', methods=['POST'])
 def add_expense():
-    username = session.get('username')
-    if not username:
-        return jsonify({"error": "Not logged in"}), 403
-
     data = request.get_json()
+
+    username = data.get('username')
+    if not username:
+        return jsonify({"error": "User not specified"}), 403
+
     required_fields = ("item", "amount", "category", "importance")
     for field in required_fields:
         if field not in data or not data[field]:

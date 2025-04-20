@@ -1,29 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar.tsx';
+import React, { useState, useEffect } from "react";
+import Sidebar from "./Sidebar.tsx";
 
 //this is for the "Input Spending" sidebar tab
 const Sheet = () => {
-  const [item, setItem] = useState('');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('');
-  const [importance, setImportance] = useState('');
+  const [item, setItem] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("");
+  const [importance, setImportance] = useState("");
   const [expenses, setExpenses] = useState([]);
 
   // used to fetch expenses from backend
-  const fetchExpenses = (cat = '', imp = '') => {
-    let url = 'http://127.0.0.1:5000/expenses';
+  const fetchExpenses = (cat = "", imp = "") => {
+    let url = "http://127.0.0.1:5000/expenses";
     const params = new URLSearchParams();
-    if (cat) params.append('category', cat);
-    if (imp) params.append('importance', imp);
+    params.append("username", localStorage.getItem("username") || "");
+    if (cat) params.append("category", cat);
+    if (imp) params.append("importance", imp);
     if (params.toString()) url += `?${params.toString()}`;
-  
+
     fetch(url, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }  // Removed credentials logic
+      method: "GET",
+      headers: { "Content-Type": "application/json" }, // Removed credentials logic
     })
-      .then(res => res.json())
-      .then(data => setExpenses(Array.isArray(data) ? data : []))
-      .catch(err => console.error('Error fetching expenses:', err));
+      .then((res) => res.json())
+      .then((data) => setExpenses(Array.isArray(data) ? data : []))
+      .catch((err) => console.error("Error fetching expenses:", err));
   };
 
   // used to fetch once when component loads
@@ -33,40 +34,41 @@ const Sheet = () => {
 
   // used to submit new expense
   const handleSubmit = () => {
-    fetch('http://127.0.0.1:5000/expenses', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    fetch("http://127.0.0.1:5000/expenses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        username: localStorage.getItem("username"),
         item,
         amount: parseFloat(amount),
         category,
-        importance
-      })
+        importance,
+      }),
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.error) {
           alert(`Failure! ${data.error}`);
         } else {
-          alert('Success! Expense added!');
-          setItem('');
-          setAmount('');
-          setCategory('');
-          setImportance('');
+          alert("Success! Expense added!");
+          setItem("");
+          setAmount("");
+          setCategory("");
+          setImportance("");
           fetchExpenses(); // Refresh expense list
         }
       })
-      .catch(err => {
-        console.error('Error adding expense:', err);
-        alert('Failed to add expense');
+      .catch((err) => {
+        console.error("Error adding expense:", err);
+        alert("Failed to add expense");
       });
   };
 
   const deleteExpense = (expenseId: number) => {
     fetch(`http://127.0.0.1:5000/expenses/${expenseId}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
     })
       .then((res) => res.json())
       .then((data) => {
@@ -78,12 +80,11 @@ const Sheet = () => {
         }
       })
       .catch((err) => {
-        console.error('Error deleting expense:', err);
-        alert('Failed to delete expense');
+        console.error("Error deleting expense:", err);
+        alert("Failed to delete expense");
       });
   };
-  
-  
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -95,25 +96,25 @@ const Sheet = () => {
             className="w-full p-2 border rounded"
             placeholder="Item (e.g. Coffee)"
             value={item}
-            onChange={e => setItem(e.target.value)}
+            onChange={(e) => setItem(e.target.value)}
           />
           <input
             className="w-full p-2 border rounded"
             type="number"
             placeholder="Amount"
             value={amount}
-            onChange={e => setAmount(e.target.value)}
+            onChange={(e) => setAmount(e.target.value)}
           />
           <input
             className="w-full p-2 border rounded"
             placeholder="Category (e.g. Food)"
             value={category}
-            onChange={e => setCategory(e.target.value)}
+            onChange={(e) => setCategory(e.target.value)}
           />
           <select
             className="w-full p-2 border rounded"
             value={importance}
-            onChange={e => setImportance(e.target.value)}
+            onChange={(e) => setImportance(e.target.value)}
           >
             <option value="">Select Importance</option>
             <option value="need">Need</option>

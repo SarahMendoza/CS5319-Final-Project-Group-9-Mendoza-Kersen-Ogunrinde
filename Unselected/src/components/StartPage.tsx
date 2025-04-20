@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
+import axios from "axios";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ const AuthPage = () => {
     if (username && password) {
       try {
         // Send POST request to your backend login endpoint
-        const response = await axios.post("http://localhost:5000/api/login", {
+        const response = await axios.post("http://127.0.0.1:5000/login", {
           username,
           password,
         });
@@ -21,6 +21,7 @@ const AuthPage = () => {
         if (response.data.message) {
           // Optionally save token in localStorage or context
           localStorage.setItem("token", response.data.token);
+          localStorage.setItem("username", username);
           navigate("/overview");
         } else {
           alert("Invalid username or password.");
@@ -40,13 +41,11 @@ const AuthPage = () => {
 
       {/* Greeting */}
       <div className="mb-4">
-          <h2 className="text-2xl">Hello, {username}!</h2>
-         : (
-          <h2 className="text-2xl">Enter your username and password</h2>
-        )
+        <h2 className="text-2xl">Hello, {username}!</h2>: (
+        <h2 className="text-2xl">Enter your username and password</h2>)
       </div>
 
-    {/* Input fields for username and password */}
+      {/* Input fields for username and password */}
       <>
         <input
           type="text"
