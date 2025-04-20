@@ -30,8 +30,8 @@ class UserService:
 
 
     @staticmethod
-    def get_current_user():
-        username = session.get('username')
+    def get_current_user(username):
+        # username = session.get('username')
         if username:
             return UserRepository.find_user_by_username(username)
         return None
