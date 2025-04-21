@@ -88,7 +88,7 @@ Rationale for Layered Selection:
 
 ### 1. **Clone the Repo**
 ```bash
-git clone https://github.com/SarahMendoza/personal-finance-app.git
+git clone https://github.com/SarahMendoza/CS5319-Final-Project-Group-9-Mendoza-Kersen-Ogunrinde.git
 cd personal-finance-app
 ```
 
@@ -131,7 +131,7 @@ npm start
 
 ### 1. **Clone the Repo If Not Already**
 ```bash
-git clone https://github.com/SarahMendoza/personal-finance-app.git
+git clone https://github.com/SarahMendoza/CS5319-Final-Project-Group-9-Mendoza-Kersen-Ogunrinde.git
 cd personal-finance-app
 ```
 
