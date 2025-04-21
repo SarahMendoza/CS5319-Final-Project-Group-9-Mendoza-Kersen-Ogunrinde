@@ -240,12 +240,11 @@ def get_budget():
 # listens for the "/expenses" endpoint
 @app.route('/expenses', methods=['GET'])
 def get_all_expenses():
-    data = request.get_json()
 
-    username = data.get('username')
+    username = request.args.get('username')
     if not username:
         return jsonify({"error": "User not specified"}), 403
-
+    
     category = request.args.get('category')
     importance = request.args.get('importance')
 
@@ -262,7 +261,7 @@ def get_all_expenses():
             "importance": e.importance
         } for e in expenses
     ]
-    return jsonify(result), 200
+    return jsonify({"expenses": result}), 200
 
 
 # insert an expense for currently logged in user
@@ -316,21 +315,16 @@ def update_expense(id):
 # DELETE -- used to delete data from the expenses list
 @app.route('/expenses/<int:id>', methods=['DELETE'])
 def delete_expense(id):
-    username = session.get('username')
+    data = request.get_json()
+    username = data.get('username')
     if not username:
-        return jsonify({"error": "Not logged in"}), 403
+        return jsonify({"error": "User not specified"}), 403
 
     deleted_expense, error = ExpenseService.delete_expense_for_user(username, id)
     if error:
         return jsonify({"error": error}), 404
 
-    return jsonify({"message": "Expense deleted", "expense": {
-        "id": deleted_expense.expense_id,
-        "item": deleted_expense.expense_label,
-        "amount": float(deleted_expense.expense_amount),
-        "category": deleted_expense.category_name,
-        "importance": deleted_expense.importance
-    }}), 200
+    return jsonify({"message": "Expense deleted", "expense_id": id}), 200
 
 
 ##############################################################################################################
