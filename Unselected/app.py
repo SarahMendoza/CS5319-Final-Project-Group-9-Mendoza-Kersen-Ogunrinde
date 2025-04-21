@@ -492,32 +492,60 @@ def delete_expense(id):
 
 # listens for the "/summary" endpoint
 @app.route('/summary', methods=['GET'])
-
-# GET -- gets a summary of the entire budget including all expenses
 def get_summary():
-    
-    # sum up all the expenses
-    total_spent = sum(e['amount'] for e in user_data.get('expenses', []))
-    
-    # subtract all expenses from the budget
-    remaining = user_data.get('budget', 0) - total_spent
+    username = request.args.get("username")
+    if not username:
+        return jsonify({"error": "User not specified"}), 403
 
-    # breakdown by category and/or importance
-    breakdown = {}
-    
-    user_expenses = user_data.get('expenses', [])
-    user_budget = user_data.get('budget', 0)
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
 
-    for e in user_expenses:
-        key = f"{e['category']} - {e['importance']}"
-        breakdown[key] = breakdown.get(key, 0) + e['amount']
+    budget = Budget.query.filter_by(user_id=user.user_id).first()
+    if not budget:
+        return jsonify({"error": "Budget not found"}), 400
 
-    response = jsonify({
-        "budget": user_budget,
-        "total_spent": total_spent,
-        "remaining": remaining,
-        "breakdown": breakdown
+    # Get the goal with the highest goal_id for this budget
+    goal = (
+        Goal.query
+        .filter_by(budget_id=budget.budget_id)
+        .order_by(Goal.goal_id.desc())
+        .first()
+    )
+
+    if not goal:
+        return jsonify({})  # No goal found
+
+    return jsonify({
+        "goalLabel": goal.goal_label,
+        "goalAmount": float(goal.goal_target_amount),
+        "savedAmount": float(goal.goal_current_amount)
     })
+# GET -- gets a summary of the entire budget including all expenses
+# def get_summary():
+    
+#     # sum up all the expenses
+#     total_spent = sum(e['amount'] for e in user_data.get('expenses', []))
+    
+#     # subtract all expenses from the budget
+#     remaining = user_data.get('budget', 0) - total_spent
+
+#     # breakdown by category and/or importance
+#     breakdown = {}
+    
+#     user_expenses = user_data.get('expenses', [])
+#     user_budget = user_data.get('budget', 0)
+
+#     for e in user_expenses:
+#         key = f"{e['category']} - {e['importance']}"
+#         breakdown[key] = breakdown.get(key, 0) + e['amount']
+
+#     response = jsonify({
+#         "budget": user_budget,
+#         "total_spent": total_spent,
+#         "remaining": remaining,
+#         "breakdown": breakdown
+#     })
 
 @app.route('/reset', methods=['POST'])
 

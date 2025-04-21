@@ -1,34 +1,44 @@
-import React, { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell } from 'recharts';
+import React, { useEffect, useState } from "react";
+import { PieChart, Pie, Cell } from "recharts";
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 const MainBudget = () => {
-
-  // state to store the budget summary 
+  // state to store the budget summary
   const [summary, setSummary] = useState({
     budget: 0,
     total_spent: 0,
     remaining: 0,
-    breakdown: {}
+    breakdown: {},
   });
 
   // fetch budget summary from backend when component mounts
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/summary', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' } // Removed credentials logic
+    const username = localStorage.getItem("username");
+    if (!username) {
+      console.error("No username found in localStorage");
+      return;
+    }
+
+    const params = new URLSearchParams({ username });
+    const url = `http://127.0.0.1:5000/summary?${params.toString()}`;
+
+    fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
     })
-      .then(res => res.json())
-      .then(data => setSummary(data))
-      .catch(err => console.error('Error fetching summary:', err));
+      .then((res) => res.json())
+      .then((data) => setSummary(data))
+      .catch((err) => console.error("Error fetching summary:", err));
   }, []);
 
   // transform breakdown object into array for the pie chart
-  const data = Object.entries(summary?.breakdown || {}).map(([name, value]) => ({
-    name,
-    value
-  }));  
+  const data = Object.entries(summary?.breakdown || {}).map(
+    ([name, value]) => ({
+      name,
+      value,
+    })
+  );
 
   return (
     // add budget summary
@@ -60,7 +70,10 @@ const MainBudget = () => {
         </PieChart>
 
         {data.length === 0 && (
-          <p className="text-gray-500 mt-4 text-center">No budget data yet. Add a budget and some expenses to see your breakdown.</p>
+          <p className="text-gray-500 mt-4 text-center">
+            No budget data yet. Add a budget and some expenses to see your
+            breakdown.
+          </p>
         )}
 
         {/* add pie chart legend */}
