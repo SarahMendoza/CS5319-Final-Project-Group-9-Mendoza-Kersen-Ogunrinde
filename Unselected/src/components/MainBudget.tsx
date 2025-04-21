@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PieChart, Pie, Cell } from "recharts";
+import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -52,7 +52,7 @@ const MainBudget = () => {
 
       {/* insert pie chart */}
       <div className="flex flex-col items-center my-8">
-        <PieChart width={300} height={300}>
+        <PieChart width={450} height={300}>
           <Pie
             data={data}
             cx="50%"

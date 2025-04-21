@@ -21,6 +21,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # used for date and time operations
 from datetime import datetime
 
+from sqlalchemy import func
+
 # initialises the app
 app = Flask(__name__)
 app.secret_key = "113-894-795"
@@ -47,7 +49,7 @@ next_id = 1
 import mysql.connector
 from flask_sqlalchemy import SQLAlchemy
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:databases2024@localhost/arch-app'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:mysql1@localhost/arch_app'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 from models import db, User, Settings, Budget, Goal, Category, Expense
@@ -497,30 +499,88 @@ def get_summary():
     if not username:
         return jsonify({"error": "User not specified"}), 403
 
+    # 1) find user
     user = User.query.filter_by(username=username).first()
     if not user:
         return jsonify({"error": "User not found"}), 404
 
+    # 2) find the (first) budget for that user
     budget = Budget.query.filter_by(user_id=user.user_id).first()
     if not budget:
         return jsonify({"error": "Budget not found"}), 400
 
-    # Get the goal with the highest goal_id for this budget
-    goal = (
-        Goal.query
-        .filter_by(budget_id=budget.budget_id)
-        .order_by(Goal.goal_id.desc())
-        .first()
-    )
+    # 3) total budget (monthly_income)
+    budget_total = float(budget.monthly_income)
 
-    if not goal:
-        return jsonify({})  # No goal found
+    # 4) sum of all expenses for this budget
+    total_spent = (
+        db.session
+          .query(func.coalesce(func.sum(Expense.expense_amount), 0.0))
+          .filter(Expense.budget_id == budget.budget_id)
+          .scalar()
+    )
+    total_spent = float(total_spent)
+
+    # 5) breakdown by category_name
+    breakdown_rows = (
+        db.session
+          .query(Expense.category_name,
+                 func.coalesce(func.sum(Expense.expense_amount), 0.0))
+          .filter(Expense.budget_id == budget.budget_id)
+          .group_by(Expense.category_name)
+          .all()
+    )
+    breakdown = {cat: float(amount) for cat, amount in breakdown_rows}
+
+    # 4) compute remaining (or overspent)
+    remaining = budget_total - total_spent
+    if remaining >= 0:
+        breakdown["Remaining"] = remaining
+    else:
+        # if you want to visualize overspend as a separate slice:
+        breakdown["Over Budget"] = abs(remaining)
 
     return jsonify({
-        "goalLabel": goal.goal_label,
-        "goalAmount": float(goal.goal_target_amount),
-        "savedAmount": float(goal.goal_current_amount)
+        "budget": budget_total,
+        "total_spent": total_spent,
+        "remaining": remaining,
+        "breakdown": breakdown
     })
+    # username = request.args.get("username")
+    # if not username:
+    #     return jsonify({"error": "User not specified"}), 403
+
+    # user = User.query.filter_by(username=username).first()
+    # if not user:
+    #     return jsonify({"error": "User not found"}), 404
+
+    # budget = Budget.query.filter_by(user_id=user.user_id).first()
+    # if not budget:
+    #     return jsonify({"error": "Budget not found"}), 400
+
+    # # Get the goal with the highest goal_id for this budget
+    # goal = (
+    #     Goal.query
+    #     .filter_by(budget_id=budget.budget_id)
+    #     .order_by(Goal.goal_id.desc())
+    #     .first()
+    # )
+
+    # if not goal:
+    #     return jsonify({})  # No goal found
+
+    # saved = float(goal.goal_current_amount)
+    # target = float(goal.goal_target_amount)
+    # breakdown = {
+    #     "Saved": saved,
+    #     "Remaining": max(target - saved, 0)
+    # }
+    # return jsonify({
+    #     "goalLabel": goal.goal_label,
+    #     "goalAmount": target,
+    #     "savedAmount": saved,
+    #     "breakdown": breakdown
+    # })
 # GET -- gets a summary of the entire budget including all expenses
 # def get_summary():
     
