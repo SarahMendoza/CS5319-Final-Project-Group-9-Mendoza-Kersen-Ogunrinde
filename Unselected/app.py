@@ -171,7 +171,7 @@ def get_savings_goal():
 
     user = User.query.filter_by(username=username).first()
     budget = Budget.query.filter_by(user_id=user.user_id).first()
-    #goal = Goal.query.filter_by(budget_id=budget.budget_id).first()
+
     goal = (
         Goal.query
         .filter_by(budget_id=budget.budget_id)
