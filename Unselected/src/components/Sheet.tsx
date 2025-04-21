@@ -7,7 +7,7 @@ const Sheet = () => {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [importance, setImportance] = useState("");
-  const [expenses, setExpenses] = useState([]);
+  const [expenses, setExpenses] = useState([{}]);
 
   // used to fetch expenses from backend
   const fetchExpenses = (cat = "", imp = "") => {
@@ -84,6 +84,7 @@ const Sheet = () => {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
+      body: JSON.stringify({ username: localStorage.getItem("username") }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -91,7 +92,7 @@ const Sheet = () => {
           alert(`Error: ${data.error}`);
         } else {
           // Remove the deleted expense from the state
-          setExpenses(expenses.filter((exp) => exp.expense_id !== expenseId)); // Use expense_id here
+          setExpenses(expenses.filter((exp) => exp.id !== expenseId)); // Use expense_id here
         }
       })
       .catch((err) => {
@@ -198,7 +199,7 @@ const Sheet = () => {
                   <td className="py-2 px-4 capitalize">{exp.importance}</td>
                   <td className="py-2 px-4">
                     <button
-                      onClick={() => deleteExpense(exp.expense_id)}
+                      onClick={() => deleteExpense(exp.id)}
                       className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
                     >
                       Delete

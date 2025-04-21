@@ -18,6 +18,9 @@ from flask import session
 # used to save passwords for authentication
 from werkzeug.security import generate_password_hash, check_password_hash
 
+# used for date and time operations
+from datetime import datetime
+
 # initialises the app
 app = Flask(__name__)
 app.secret_key = "113-894-795"
@@ -52,7 +55,7 @@ from models import db, User, Settings, Budget, Goal, Category, Expense
 db.init_app(app)  # 🔥 registers the app context with db
 
 with app.app_context():
-    # db.drop_all()
+    #db.drop_all()
     db.create_all()  
 
 # initialises list where 
@@ -161,20 +164,26 @@ def delete_expense_from_db(id):
 
 # GET -- get savings goal
 def get_savings_goal():
-    username = session.get('username')
+    
+    username = request.args.get("username")
     if not username:
-        return jsonify({"error": "Not logged in"}), 403
+        return jsonify({"error": "User not specified"}), 403
 
     user = User.query.filter_by(username=username).first()
     budget = Budget.query.filter_by(user_id=user.user_id).first()
-    goal = Goal.query.filter_by(budget_id=budget.budget_id).first()
+    #goal = Goal.query.filter_by(budget_id=budget.budget_id).first()
+    goal = (
+        Goal.query
+        .filter_by(budget_id=budget.budget_id)
+        .order_by(Goal.goal_id.desc())
+        .first()
+    )
 
     if not goal:
         return jsonify({})
 
     return jsonify({
         "goalLabel": goal.goal_label,
-        "goalTargetDate": goal.goal_target_date.isoformat() if goal.goal_target_date else None,
         "goalAmount": float(goal.goal_target_amount),
         "savedAmount": float(goal.goal_current_amount)
     })
@@ -188,17 +197,18 @@ def get_savings_goal():
 # SET -- set savings goal
 def set_savings_goal():
     data = request.get_json()
-    username = session.get('username')
+
+    username = data.get('username')
     if not username:
-        return jsonify({"error": "Not logged in"}), 403
+        return jsonify({"error": "User not specified"}), 403
     
     user = User.query.filter_by(username=username).first()
     budget = Budget.query.filter_by(user_id=user.user_id).first()
 
     goal = Goal(
         budget_id=budget.budget_id,
-        goal_label=data.get("goalLabel", "Savings Goal"),
-        goal_target_date=datetime.strptime(data["goalTargetDate"], "%Y-%m-%d").date(),
+        goal_label=("Savings Goal"),
+        # goal_target_date=datetime.strptime(, "%Y-%m-%d").date(),
         goal_target_amount=data.get("goalAmount", 0),
         goal_current_amount=data.get("savedAmount", 0)
     )
@@ -208,7 +218,7 @@ def set_savings_goal():
     return jsonify({"message": "Savings goal set"})
 
 
-    return jsonify({"message": "Savings goal set successfully", "goal": user_data["savings_goal"]}), 201
+    #return jsonify({"message": "Savings goal set successfully", "goal": user_data["savings_goal"]}), 201
 
 ##############################################################################################################
 
@@ -448,9 +458,9 @@ def update_expense(id):
 
 # DELETE -- used to delete data from the expenses list
 def delete_expense(id):
-    
+    data = request.get_json()
     #get username from the delete request
-    username = request.args.get("username")
+    username = data.get("username")
     if not username:
         return jsonify({"error": "User not specified"}), 403
     

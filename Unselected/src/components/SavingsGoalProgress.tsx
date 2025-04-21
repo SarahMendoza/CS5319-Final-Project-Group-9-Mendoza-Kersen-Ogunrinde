@@ -1,32 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar.tsx';
+import React, { useState, useEffect } from "react";
+import Sidebar from "./Sidebar.tsx";
 
 const SavingsGoalProgress = () => {
   const [goalAmount, setGoalAmount] = useState(0);
   const [savedAmount, setSavedAmount] = useState(0);
-  const [newGoalAmount, setNewGoalAmount] = useState(0); 
+  const [newGoalAmount, setNewGoalAmount] = useState(0);
   const [newSavedAmount, setNewSavedAmount] = useState(0);
 
   // Fetch the current goal and progress from your API or static data
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/savings-goal', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+    const username = localStorage.getItem("username");
+    if (!username) {
+      console.error("No username found in localStorage");
+      return;
+    }
+
+    const params = new URLSearchParams({ username });
+    const url = `http://127.0.0.1:5000/savings-goal?${params.toString()}`;
+
+    fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
     })
       .then((res) => res.json())
       .then((data) => {
         setGoalAmount(data.goalAmount);
         setSavedAmount(data.savedAmount);
       })
-      .catch((err) => console.error('Error fetching savings goal:', err));
+      .catch((err) => console.error("Error fetching savings goal:", err));
   }, []);
 
   // Handle the submission of a new savings goal
   const handleSaveGoal = () => {
-    fetch('http://127.0.0.1:5000/savings-goal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    fetch("http://127.0.0.1:5000/savings-goal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        username: localStorage.getItem("username"),
         goalAmount: newGoalAmount,
         savedAmount: newSavedAmount,
       }),
@@ -35,11 +45,11 @@ const SavingsGoalProgress = () => {
       .then((data) => {
         setGoalAmount(newGoalAmount);
         setSavedAmount(newSavedAmount);
-        alert('Savings goal set successfully!');
+        alert("Savings goal set successfully!");
       })
       .catch((err) => {
-        console.error('Error setting savings goal:', err);
-        alert('Failed to set savings goal');
+        console.error("Error setting savings goal:", err);
+        alert("Failed to set savings goal");
       });
   };
 
@@ -47,8 +57,7 @@ const SavingsGoalProgress = () => {
 
   return (
     <div className="flex h-screen">
-      <Sidebar />  {/* Add Sidebar here */}
-
+      <Sidebar /> {/* Add Sidebar here */}
       <div className="flex-1 bg-gray-100 overflow-y-auto">
         <div className="p-6 bg-white rounded shadow-lg">
           <h3 className="text-2xl font-semibold mb-4">Savings Goal Progress</h3>
@@ -61,7 +70,7 @@ const SavingsGoalProgress = () => {
           <div className="w-full bg-gray-200 h-4 rounded mb-2">
             <div
               className="h-4 bg-green-500 rounded"
-              style={{ width: `${Math.min(progress, 100)}%` }} 
+              style={{ width: `${Math.min(progress, 100)}%` }}
             ></div>
           </div>
 
@@ -76,7 +85,9 @@ const SavingsGoalProgress = () => {
               value={newGoalAmount}
               onChange={(e) => setNewGoalAmount(parseFloat(e.target.value))}
             />
-            <h4 className="text-lg font-semibold">Enter Amount of Saving's Goal Saved</h4>
+            <h4 className="text-lg font-semibold">
+              Enter Amount of Saving's Goal Saved
+            </h4>
             <input
               type="number"
               placeholder="Enter saved amount"
