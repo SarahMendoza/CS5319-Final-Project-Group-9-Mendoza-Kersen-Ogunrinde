@@ -12,18 +12,33 @@ const Sheet = () => {
   // used to fetch expenses from backend
   const fetchExpenses = (cat = "", imp = "") => {
     let url = "http://127.0.0.1:5000/expenses";
-    const params = new URLSearchParams();
-    params.append("username", localStorage.getItem("username") || "");
-    if (cat) params.append("category", cat);
-    if (imp) params.append("importance", imp);
-    if (params.toString()) url += `?${params.toString()}`;
+    const username = localStorage.getItem("username");
 
-    fetch(url, {
+    if (!username) {
+      console.error("Username not found in localStorage");
+      return;
+    }
+
+    const params = new URLSearchParams({
+      username: username,
+      category: cat,
+      importance: imp,
+    });
+
+    fetch(`${url}?${params.toString()}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" }, // Removed credentials logic
+      headers: { "Content-Type": "application/json" },
     })
-      .then((res) => res.json())
-      .then((data) => setExpenses(Array.isArray(data) ? data : []))
+      .then((res) => {
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Expected JSON response");
+        }
+        return res.json();
+      })
+      .then((data) =>
+        setExpenses(Array.isArray(data.expenses) ? data.expenses : [])
+      )
       .catch((err) => console.error("Error fetching expenses:", err));
   };
 
@@ -39,10 +54,10 @@ const Sheet = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         username: localStorage.getItem("username"),
-        item,
+        item: item,
         amount: parseFloat(amount),
-        category,
-        importance,
+        category: category,
+        importance: importance,
       }),
     })
       .then((res) => res.json())
@@ -76,7 +91,7 @@ const Sheet = () => {
           alert(`Error: ${data.error}`);
         } else {
           // Remove the deleted expense from the state
-          setExpenses(expenses.filter((exp) => exp.id !== expenseId));
+          setExpenses(expenses.filter((exp) => exp.expense_id !== expenseId)); // Use expense_id here
         }
       })
       .catch((err) => {
@@ -183,7 +198,7 @@ const Sheet = () => {
                   <td className="py-2 px-4 capitalize">{exp.importance}</td>
                   <td className="py-2 px-4">
                     <button
-                      onClick={() => deleteExpense(exp.id)}
+                      onClick={() => deleteExpense(exp.expense_id)}
                       className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
                     >
                       Delete

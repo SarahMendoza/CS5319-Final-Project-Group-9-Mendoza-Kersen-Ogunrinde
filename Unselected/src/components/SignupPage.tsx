@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
+import axios from "axios";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -8,9 +8,9 @@ const SignupPage = () => {
   const [password, setPassword] = useState("");
 
   const handleSignup = async () => {
-    if (username && password) {
+    if (username != "" && password != "") {
       try {
-        const response = await axios.post("http://localhost:5000/create-user", {
+        const response = await axios.post("http://127.0.0.1:5000/create-user", {
           username,
           password,
         });

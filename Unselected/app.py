@@ -44,7 +44,7 @@ next_id = 1
 import mysql.connector
 from flask_sqlalchemy import SQLAlchemy
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:mysql1@localhost/arch_app'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:databases2024@localhost/arch-app'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 from models import db, User, Settings, Budget, Goal, Category, Expense
@@ -262,13 +262,13 @@ def update_savings_goal():
 
 # SETTER -- set the amount of the budget
 def set_budget():
-
-    username = session.get('username')
-    if not username:
-        return jsonify({"error": "Not logged in"}), 403
     
     # get the budget value from the frontend
     data = request.get_json()
+
+    username = data.get('username')
+    if not username:
+        return jsonify({"error": "User not specified"}), 403
 
     # if the budget value is not inputted, return error message
     if 'amount' not in data:
@@ -293,9 +293,11 @@ def set_budget():
 
 @app.route('/budget', methods=['GET'])
 def get_budget():
-    username = session.get('username')
+    
+    data = request.get_json()
+    username = data.get('username')
     if not username:
-        return jsonify({"error": "Not logged in"}), 403
+        return jsonify({"error": "User not specified"}), 403
 
     user = User.query.filter_by(username=username).first()
     if not user:
@@ -318,14 +320,20 @@ def get_budget():
 # listens for the "/expenses" endpoint
 @app.route('/expenses', methods=['GET'])
 def get_all_expenses():
-    username = session.get('username')
-    if not username:
-        return jsonify({"error": "Not logged in"}), 403
 
-    category = request.args.get('category')
-    
-    # initialise importance variable to be able to filter by importance
-    importance = request.args.get('importance')
+    cat = False
+    imp = False
+
+    username = request.args.get("username")
+    category = request.args.get("category")
+    importance = request.args.get("importance")
+
+    #initialize filter variables based on their availability, set flags
+    if category != "":
+        cat = True
+    if importance != "":
+        imp = True
+
 
     user = User.query.filter_by(username=username).first()
     if not user:
@@ -337,9 +345,9 @@ def get_all_expenses():
 
     query = Expense.query.filter_by(budget_id=budget.budget_id)
     
-    if category:
+    if cat:
         query = query.filter_by(category_name=category)
-    if importance:
+    if imp:
         query = query.filter_by(importance=importance)
 
     expenses = query.all()
@@ -353,7 +361,8 @@ def get_all_expenses():
             "importance": e.importance
         } for e in expenses
     ]
-    return jsonify(result)
+    print(result)
+    return jsonify({"expenses" : result})
 
 
 # insert an expense for currently logged in user
@@ -362,12 +371,12 @@ def get_all_expenses():
 # POST -- add expense to expense list in the form {"item": "Coffee", "amount": 5, "category": "Food and Drink"}
 def add_expense():
 
-    username = session.get('username')
-    if not username:
-        return jsonify({"error": "Not logged in"}), 403
-    
-    # get the data (which would be received in json format)
     data = request.get_json()
+
+    username = data.get('username')
+    if not username:
+        return jsonify({"error": "User not specified"}), 403
+    
     required_fields = ("item", "amount", "category", "importance")
     for k in required_fields:
         it = data[k]
@@ -440,14 +449,34 @@ def update_expense(id):
 # DELETE -- used to delete data from the expenses list
 def delete_expense(id):
     
-    # if successful, return success message
-    for i, expense in enumerate(user_data.get('expenses', [])):
-        if expense['id'] == id:
-            deleted = user_data['expenses'].pop(i)
-            return jsonify({"message": "Deleted", "expense": deleted})
+    #get username from the delete request
+    username = request.args.get("username")
+    if not username:
+        return jsonify({"error": "User not specified"}), 403
     
-    # if not, return error message
-    return jsonify({"error": "Not found"}), 404
+    #get all expenses for that user
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    budget = Budget.query.filter_by(user_id=user.user_id).first()
+    if not budget:
+        return jsonify({"error": "No budget found"}), 400
+    expense = Expense.query.filter_by(expense_id=id, budget_id=budget.budget_id).first()
+    if not expense:
+        return jsonify({"error": "Expense not found"}), 404
+    db.session.delete(expense)
+    db.session.commit()
+    #return success message
+    return jsonify({"message": "Expense deleted", "expense_id": id}), 200
+
+    # # if successful, return success message
+    # for i, expense in enumerate(user_data.get('expenses', [])):
+    #     if expense['id'] == id:
+    #         deleted = user_data['expenses'].pop(i)
+    #         return jsonify({"message": "Deleted", "expense": deleted})
+    
+    # # if not, return error message
+    # return jsonify({"error": "Not found"}), 404
 
 ##############################################################################################################
 
