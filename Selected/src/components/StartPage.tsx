@@ -41,8 +41,8 @@ const AuthPage = () => {
 
       {/* Greeting */}
       <div className="mb-4">
-        <h2 className="text-2xl">Hello, {username}!</h2>: (
-        <h2 className="text-2xl">Enter your username and password</h2>)
+        <h2 className="text-2xl">Hello!</h2>
+        <h2 className="text-2xl">Enter your username and password</h2>
       </div>
 
       {/* Input fields for username and password */}

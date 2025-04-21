@@ -41,8 +41,8 @@ const AuthPage = () => {
 
       {/* Greeting */}
       <div className="mb-4">
-        <h2 className="text-2xl">Hello, {username}!</h2>: (
-        <h2 className="text-2xl">Enter your username and password</h2>)
+        <h2 className="text-2xl">Hello!</h2>
+        <h2 className="text-2xl">Enter your username and password</h2>
       </div>
 
       {/* Input fields for username and password */}
@@ -70,13 +70,6 @@ const AuthPage = () => {
         className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
       >
         Start Using Budget.ly
-      </button>
-      {/* Signup button */}
-      <button
-        onClick={() => navigate("/signup")}
-        className="text-blue-600 underline mt-2"
-      >
-        Don't have an account? Sign Up
       </button>
     </div>
   );
