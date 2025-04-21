@@ -15,7 +15,14 @@ class GoalRepository:
 
     @staticmethod
     def get_goal_by_budget_id(budget_id):
-        return Goal.query.filter_by(budget_id=budget_id).first()
+        #return Goal.query.filter_by(budget_id=budget_id).order_by(desc(Goal.goal_id)).first()
+        goal = (
+        Goal.query
+        .filter_by(budget_id=budget_id)
+        .order_by(Goal.goal_id.desc())
+        .first()
+        )
+        return goal
 
     @staticmethod
     def update_goal(goal_id, goal_label=None, goal_target_amount=None, goal_current_amount=None):

@@ -107,11 +107,11 @@ def insert_expense_to_db(data):
 # GET -- get savings goal
 @app.route('/savings-goal', methods=['GET'])
 def get_savings_goal():
-    username = session.get('username')
+    username = request.args.get('username')
     if not username:
-        return jsonify({"error": "Not logged in"}), 403
+        return jsonify({"error": "User not specified"}), 403
 
-    user = UserService.get_current_user()
+    user = UserService.get_current_user(username)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -131,11 +131,11 @@ def get_savings_goal():
 @app.route('/savings-goal', methods=['POST'])
 def set_savings_goal():
     data = request.get_json()
-    username = session.get('username')
+    username = data.get('username')
     if not username:
         return jsonify({"error": "Not logged in"}), 403
 
-    user = UserService.get_current_user()
+    user = UserService.get_current_user(username)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
@@ -334,9 +334,10 @@ def delete_expense(id):
 
 # GET -- gets a summary of the entire budget including all expenses
 def get_summary():
-    username = session.get('username')
+
+    username = request.args.get('username')
     if not username:
-        return jsonify({"error": "Not logged in"}), 403
+        return jsonify({"error": "User not specified"}), 403
 
     summary, error = SummaryService.get_summary(username)
     if error:
